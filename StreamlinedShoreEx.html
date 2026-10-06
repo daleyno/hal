@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#021E46">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Streamlined Shore Ex">
+<title>Streamlined Shore Ex</title>
+<!--
+  Shore Excursion detail — Streamlined Shore Ex
+  Foundation: ShoreEx.html (Variant 3). Reference for scannable facts: base.html.
+
+  What changed from ShoreEx
+    · Decision facts sit directly under the title in the navy band: date, departures, duration, activity,
+      price and an always-visible accessibility line. No modal is needed to find a restriction.
+    · Shorter mobile hero (≈45% of the screen) so the first screen answers what / when / how long / cost / fit.
+    · Photography shows only what is included: humpbacks from the boat, the Mendenhall trail, Nugget Falls, the crew.
+    · One departure control (.slot radio rows) used on the page, in the desktop card and in the Reserve sheet.
+      Selected, few-left, waitlist and full states look and read the same everywhere.
+    · Activity and accessibility details are inline (Suitability section) instead of in sheets.
+    · Booking review lists departure + meet time, guests, gross price, credits with their per-guest rule,
+      total + where it is charged, and cancellation terms. Waitlist = free to join, charged only if you accept.
+    · One voyage date: Saturday, December 12, 2026 (from base.html). Change deadline derived from it.
+
+  Breakpoints: < 640 phone · ≥ 640 tablet (centred 784 column) · ≥ 1024 desktop (2 columns + sticky booking card)
+  All content, prices, availability, credits and reviews are sample data. Nothing is booked or charged.
+-->
+<style>
+:root {
+  --hal-blue: #022658; --hal-blue-dark: #021E46; --primary-hover: #1C4379;
+  --mes-orange: #E46C24; --orange-text: #A34C17;
+  --dutch-creme: #F8EDDC;
+  --blue-05: #E6E9EE; --blue-02: #F1F4F8; --blue-1: #CCD4DE; --blue-3: #677D9B;
+  --white: #FFFFFF; --neutral-5: #F2F3F4; --neutral-10: #E6E7E9; --neutral-20: #CDCFD2;
+  --neutral-40: #9A9FA5; --neutral-60: #686F79; --neutral-70: #4F5763; --neutral-90: #1D2736;
+  --alert: #B00000; --success: #179F32; --success-text: #12722A; --success-soft: #F2FFF5;
+  --border: #E4E4EB;
+  --on-navy: rgba(255,255,255,0.78); --on-navy-rule: rgba(255,255,255,0.16);
+
+  --radius-m: 14px; --radius-l: 20px; --radius-xl: 360px;
+  --shadow-card: 0 6px 16px 0 rgba(0,0,0,0.12);
+  --shadow-bar: 0 -6px 18px rgba(3,15,31,0.06);
+  --focus: 0 0 0 3px rgba(25,121,255,0.55);
+
+  --font-display: "HAL Headline Display", Georgia, "Times New Roman", serif;
+  --font-body: "HAL Body", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --fast: 160ms; --base: 240ms; --slow: 360ms;
+
+  --page-pad: 20px; --content-max: 100%;
+  --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --compact-h: calc(48px + var(--safe-top));
+  --jump-h: 56px;
+  --bar-h: 84px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+html.is-locked, html.is-locked body { overflow: hidden; }
+body { margin: 0; background: var(--white); color: var(--neutral-90); font-family: var(--font-body); font-size: 1rem; line-height: 1.55; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: inherit; }
+a { color: inherit; }
+:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 8px; }
+p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.container { width: 100%; max-width: var(--content-max); margin: 0 auto; padding: 0 var(--page-pad); }
+.icon { width: 1.5rem; height: 1.5rem; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange-text); }
+.display { font-family: var(--font-display); font-weight: 400; color: var(--hal-blue); letter-spacing: -0.01em; line-height: 1.15; }
+.link { font-weight: 700; color: var(--hal-blue); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.link:hover { color: #1461CC; }
+.muted { color: var(--neutral-70); }
+.ok { display: inline-flex; align-items: center; gap: 6px; }
+.ok::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex: none; }
+
+/* ================= Hero ================= */
+/* Shorter than ShoreEx on phones: the photo sets the mood, the navy band below carries the decision facts */
+.hero { position: relative; height: calc(clamp(400px, 56svh, 520px) + var(--safe-top)); background: var(--hal-blue-dark); color: var(--white); overflow: hidden; }
+.gallery { position: absolute; inset: 0; overflow: hidden; }
+.slide { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity 1800ms var(--ease); overflow: hidden; }
+.slide.is-active { opacity: 1; }
+.slide img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; transform: scale(var(--s0, 1.06)) translate(var(--fx, 0), var(--fy, 0)); transform-origin: var(--ox, 50%) var(--oy, 50%); will-change: transform; }
+.slide.is-kb img { animation: kenburns 9000ms linear forwards; }
+@keyframes kenburns { from { transform: scale(var(--s0, 1.06)) translate(var(--fx, 0), var(--fy, 0)); } to { transform: scale(var(--s1, 1.18)) translate(var(--tx, 0), var(--ty, 0)); } }
+.hero__scrim { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(rgba(3,15,31,0.45) 0, rgba(3,15,31,0) 120px), linear-gradient(rgba(2,30,70,0) 34%, rgba(2,30,70,0.45) 56%, rgba(2,30,70,0.88) 80%, var(--hal-blue-dark) 100%); }
+/* Progressive blur: the photo softens as it hands off to the navy band (from ShoreEx) */
+.hero__blur { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; pointer-events: none; -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 45%, #000 80%); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 45%, #000 80%); }
+.hero__top { position: absolute; left: 0; right: 0; top: calc(var(--safe-top) + 12px); padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
+.round-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.94); color: var(--hal-blue); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(3,15,31,0.18); transition: transform var(--fast) var(--ease); }
+.round-btn:active { transform: scale(0.96); }
+.round-btn .icon { width: 1.375rem; height: 1.375rem; stroke-width: 2; }
+/* Slideshow controls live top-right, out of the title's way */
+.hero__ctrl { display: flex; align-items: center; padding: 0 4px; border-radius: var(--radius-xl); background: rgba(3,15,31,0.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.dots { display: flex; }
+.dots button { width: 26px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.dots button::before { content: ""; width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.55); transition: width var(--base) var(--ease), background var(--base) var(--ease); }
+.dots button[aria-current="true"]::before { width: 18px; background: var(--white); }
+.hero__pause { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: rgba(255,255,255,0.85); }
+.hero__pause .icon { width: 0.875rem; height: 0.875rem; stroke-width: 2.4; }
+.hero__body { position: absolute; left: 0; right: 0; bottom: 0; padding-bottom: 18px; }
+.status-chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 5px 12px 5px 10px; border-radius: var(--radius-xl); background: var(--white); color: var(--hal-blue); font-size: 0.875rem; font-weight: 700; line-height: 1.3; text-shadow: none; box-shadow: 0 2px 8px rgba(3,15,31,0.18); margin-bottom: 4px; }
+.status-chip__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mes-orange); flex: none; }
+.status-chip[data-tone="ok"] .status-chip__dot { background: var(--success); }
+.status-chip[data-tone="calm"] .status-chip__dot { background: var(--blue-3); }
+/* Key facts: one quiet line of icon + words under the title — no boxes, no grid */
+.hero__facts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 6px; font-size: 0.9375rem; color: rgba(255,255,255,0.92); }
+.hero__facts li { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.hero__facts .icon { width: 1.125rem; height: 1.125rem; color: var(--dutch-creme); stroke-width: 1.8; }
+.hero__facts a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,0.55); }
+.hero__body .container { display: flex; flex-direction: column; gap: 6px; text-shadow: 0 1px 12px rgba(2,30,70,0.5); }
+.hero__eyebrow { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.9); }
+.hero__title { font-family: var(--font-display); font-size: 1.875rem; line-height: 1.1; letter-spacing: -0.01em; text-wrap: balance; }
+
+/* ================= Why go: its own navy band ================= */
+.why { position: relative; isolation: isolate; color: var(--white); padding: 4px 0 36px; clip-path: inset(-1px -100vmax 0); }
+.why::before { content: ""; position: absolute; top: -1px; bottom: 0; left: -100vmax; right: -100vmax; background: var(--hal-blue-dark); z-index: -1; }
+.why__rule { border: 0; height: 1px; margin: 0 0 24px; background: rgba(255,255,255,0.16); }
+.why .eyebrow { color: var(--dutch-creme); }
+.why__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+.why__title { font-size: 1.625rem; color: var(--white); }
+.moments { display: flex; flex-direction: column; gap: 18px; }
+.moment { width: 100%; display: grid; grid-template-columns: 76px 1fr; gap: 16px; align-items: start; text-align: left; color: inherit; border-radius: 16px; }
+.moment__copy { display: flex; flex-direction: column; min-width: 0; }
+.moment__title { font-family: var(--font-display); font-size: 1.25rem; line-height: 1.2; color: var(--white); text-wrap: balance; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: rgba(255,255,255,0.55); }
+.moment:hover .moment__title { text-decoration-color: var(--white); }
+.moment__text { font-size: 0.9375rem; color: var(--on-navy); margin-top: 4px; text-wrap: pretty; }
+.thumb { width: 76px; aspect-ratio: 1; border-radius: 16px; overflow: hidden; display: block; box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 4px 12px rgba(0,0,0,0.3); transition: transform var(--fast) var(--ease); }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.moment:hover .thumb { transform: scale(1.02); }
+
+/* ================= Compact header + jump nav ================= */
+.compact-header { position: fixed; left: 0; right: 0; top: 0; z-index: 9; height: var(--compact-h); padding-top: var(--safe-top); background: rgba(255,255,255,0.97); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  transform: translateY(-100%); visibility: hidden; transition: transform var(--fast) var(--ease), visibility 0s linear var(--fast); }
+.compact-header.is-visible { transform: none; visibility: visible; transition-delay: 0s; }
+.compact-header__inner { height: 48px; display: flex; align-items: center; gap: 4px; padding: 0 8px; max-width: var(--content-max); margin: 0 auto; }
+.compact-header__back { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--hal-blue); }
+.compact-header__back .icon { stroke-width: 2; }
+.compact-header__text { flex: 1; min-width: 0; margin-right: 48px; text-align: center; line-height: 1.2; }
+.compact-header__title { font-size: 0.9375rem; font-weight: 700; color: var(--hal-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compact-header__ctx { font-size: 0.75rem; color: var(--neutral-70); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.jump { position: sticky; top: var(--compact-h); z-index: 8; background: rgba(255,255,255,0.97); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); margin: 0 calc(-1 * var(--page-pad)); transition: box-shadow var(--fast) var(--ease); }
+.jump.is-stuck { box-shadow: 0 1px 0 var(--border), 0 6px 14px rgba(3,15,31,0.05); }
+.jump__track { display: flex; gap: 8px; padding: 10px var(--page-pad); overflow-x: auto; scrollbar-width: none; scroll-padding: 0 var(--page-pad); }
+.jump__track::-webkit-scrollbar { display: none; }
+/* Fade on the trailing edge whenever more pills sit off-screen */
+.jump.has-more .jump__track { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
+.jump__pill { flex: none; text-decoration: none; padding: 8px 14px; min-height: 36px; display: inline-flex; align-items: center; border-radius: var(--radius-xl); font-size: 0.875rem; font-weight: 700; color: var(--neutral-70); background: var(--neutral-5); white-space: nowrap; transition: background var(--base) var(--ease), color var(--base) var(--ease); }
+.jump__pill[aria-current="true"] { background: var(--hal-blue); color: var(--white); }
+
+/* ================= Sections ================= */
+.section { padding: 36px 0 8px; scroll-margin-top: calc(var(--compact-h) + var(--jump-h) + 8px); }
+.section__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.section__title { font-size: 1.625rem; }
+.lead { font-size: 1.0625rem; line-height: 1.6; text-wrap: pretty; }
+.sub-h { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--neutral-60); margin-bottom: 12px; }
+
+/* Timeline: real clock times for the selected departure */
+.timeline { margin-top: 24px; }
+.timeline__note { font-size: 0.875rem; color: var(--neutral-70); margin: -6px 0 14px; }
+.tl { display: grid; grid-template-columns: 4.75rem 18px 1fr; gap: 0 12px; }
+.tl__time { font-weight: 700; color: var(--hal-blue); font-variant-numeric: tabular-nums; padding: 1px 0 16px; white-space: nowrap; }
+.tl__rail { position: relative; display: flex; justify-content: center; }
+.tl__rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--blue-1); }
+.tl:first-child .tl__rail::before { top: 9px; }
+.tl:last-child .tl__rail::before { bottom: calc(100% - 9px); }
+.tl__rail::after { content: ""; position: relative; margin-top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--white); border: 2px solid var(--hal-blue); }
+.tl__what { padding: 0 0 16px; }
+.tl__what b { display: block; color: var(--neutral-90); }
+.tl__what span { font-size: 0.875rem; color: var(--neutral-70); }
+.tl.is-flash .tl__time { animation: flash 900ms var(--ease); }
+@keyframes flash { 0% { color: var(--mes-orange); } 100% { color: var(--hal-blue); } }
+
+.pack { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+.pack__card { padding: 16px; border-radius: var(--radius-m); background: var(--neutral-5); }
+.pack__card h3 { font-weight: 700; color: var(--hal-blue); margin-bottom: 8px; }
+.ticks { display: flex; flex-direction: column; gap: 6px; font-size: 0.9375rem; }
+.ticks li { display: flex; gap: 10px; align-items: flex-start; }
+.ticks .icon { width: 1.125rem; height: 1.125rem; stroke-width: 2.2; color: var(--success-text); margin-top: 3px; }
+.ticks li.no .icon { color: var(--neutral-60); }
+
+/* What to expect — ShoreEx detail tiles, plus a positive "you'll love it if" */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { display: grid; gap: 10px; justify-items: start; padding: 14px 14px 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); min-width: 0; }
+.tile > .icon { color: var(--hal-blue); }
+.tile__text { display: flex; flex-direction: column; min-width: 0; }
+.tile__label { font-size: 0.8125rem; color: var(--neutral-70); }
+.tile__value { font-weight: 700; color: var(--hal-blue); }
+.love { margin-top: 24px; }
+.love h3 { font-family: var(--font-display); font-size: 1.25rem; color: var(--hal-blue); margin-bottom: 10px; }
+.love ul { display: flex; flex-direction: column; gap: 10px; }
+.love li { display: flex; gap: 12px; align-items: flex-start; }
+.love li .icon { width: 1.25rem; height: 1.25rem; stroke-width: 2.2; color: var(--success-text); margin-top: 2px; }
+.access-tile { margin-top: 20px; display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); font-size: 0.9375rem; color: var(--neutral-70); }
+.access-tile .icon { color: var(--hal-blue); margin-top: 1px; }
+.access-tile b { display: block; color: var(--hal-blue); }
+.facts { margin-top: 24px; border-top: 1px solid var(--border); }
+.fact { display: grid; grid-template-columns: 1.5rem 1fr; gap: 4px 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.fact .icon { color: var(--hal-blue); margin-top: 1px; }
+.fact dt { font-weight: 700; color: var(--neutral-90); }
+.fact dd { grid-column: 2; font-size: 0.9375rem; color: var(--neutral-70); }
+.fact--alert dt { color: var(--hal-blue); }
+.help { margin-top: 16px; font-size: 0.9375rem; color: var(--neutral-70); }
+
+/* ================= Departure times: one compact component everywhere ================= */
+.times-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; font-size: 0.8125rem; color: var(--neutral-70); }
+.times-label b { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--neutral-60); }
+.slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.slot { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 1px; min-height: 58px; padding: 9px 12px; border-radius: 12px; border: 1.5px solid var(--blue-1); background: var(--white); cursor: pointer; transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease); }
+.slot:hover { border-color: var(--blue-3); }
+.slot__time { font-weight: 700; color: var(--hal-blue); font-size: 1rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.slot__status { display: flex; align-items: center; gap: 5px; font-size: 0.8125rem; color: var(--neutral-70); white-space: nowrap; }
+.slot__status .icon { width: 0.875rem; height: 0.875rem; stroke-width: 2.4; }
+.slot[data-s="few"] .slot__status { color: var(--orange-text); font-weight: 700; }
+.slot[data-s="available"] .slot__status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+/* Waitlist: dashed edge + clock, wherever it appears */
+.slot[data-s="waitlist"] { border-style: dashed; }
+.slot[data-s="waitlist"] .slot__status { color: var(--hal-blue); font-weight: 700; }
+.slot[data-s="soldout"] { background: var(--neutral-5); border-color: var(--neutral-10); cursor: not-allowed; }
+.slot[data-s="soldout"] .slot__time { color: var(--neutral-60); text-decoration: line-through; text-decoration-thickness: 1px; }
+/* Selected: navy edge, tint, and a check pinned to the corner */
+.slot[aria-checked="true"] { border: 2px solid var(--hal-blue); background: var(--blue-02); padding: 8.5px 11.5px; }
+.slot__mark { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: var(--hal-blue); color: var(--white); display: none; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--white); }
+.slot[aria-checked="true"] .slot__mark { display: flex; }
+.slot__mark .icon { width: 12px; height: 12px; stroke-width: 3; }
+.slot-note { margin-top: 10px; display: flex; gap: 8px; align-items: flex-start; font-size: 0.875rem; line-height: 1.45; color: var(--neutral-70); }
+.slot-note .icon { width: 1.125rem; height: 1.125rem; color: var(--hal-blue); margin-top: 1px; }
+@media (max-width: 359px) { .slot { padding: 8px 9px; } .slot[aria-checked="true"] { padding: 7.5px 8.5px; } .slot__time { font-size: 0.9375rem; } }
+.notify { margin-top: 10px; }
+.chip-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px; border-radius: var(--radius-xl); border: 1px solid var(--hal-blue); color: var(--hal-blue); font-size: 0.875rem; font-weight: 700; transition: background var(--base) var(--ease); }
+.chip-btn[aria-pressed="true"] { background: var(--success-soft); border-color: var(--success); color: var(--success-text); }
+.chip-btn .icon { width: 1rem; height: 1rem; stroke-width: 2.4; }
+
+/* Booking controls */
+.calc { margin-top: 18px; display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.row__label { min-width: 0; }
+.row__label b { display: block; color: var(--hal-blue); }
+.row__label span { display: block; font-size: 0.8125rem; color: var(--neutral-70); }
+.stepper { flex: none; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-xl); background: var(--neutral-5); padding: 4px; }
+.stepper button { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--hal-blue); background: var(--white); box-shadow: 0 1px 2px rgba(3,15,31,0.12); }
+.stepper button:disabled { color: var(--neutral-40); box-shadow: none; background: transparent; cursor: not-allowed; }
+.stepper output { min-width: 2rem; text-align: center; font-weight: 700; color: var(--hal-blue); font-variant-numeric: tabular-nums; }
+.switch { position: relative; width: 52px; height: 32px; border-radius: 16px; background: var(--neutral-40); flex: none; transition: background var(--base) var(--ease); }
+.switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 3px rgba(3,15,31,0.25); transition: transform var(--base) var(--ease); }
+.switch[aria-checked="true"] { background: var(--hal-blue); }
+.switch[aria-checked="true"]::after { transform: translateX(20px); }
+.sum { padding-top: 16px; border-top: 1px solid var(--border); }
+.sum__row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 700; color: var(--hal-blue); }
+.sum__row b { font-size: 1.375rem; font-family: var(--font-display); font-weight: 400; }
+.sum__note { font-size: 0.8125rem; color: var(--neutral-70); margin-top: 2px; }
+.rv__credit { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.total { padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.total__line { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9375rem; color: var(--neutral-70); }
+.total__line.is-credit { color: var(--success-text); }
+.total__sum { display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px; font-weight: 700; color: var(--hal-blue); font-size: 1.125rem; }
+.total__where { font-size: 0.8125rem; color: var(--neutral-70); }
+.notice { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--radius-m); background: var(--blue-05); font-size: 0.875rem; color: var(--neutral-90); }
+.notice .icon { width: 1.25rem; height: 1.25rem; color: var(--hal-blue); margin-top: 1px; }
+.notice b { color: var(--hal-blue); }
+.notice--warn { background: #FFF4EC; }
+.notice--warn .icon { color: var(--orange-text); }
+
+/* Price & times section (phone/tablet; the desktop card replaces it) */
+.price-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.price-head .display { font-size: 2rem; }
+.credit-rule { margin-top: 16px; }
+.booked-box { padding: 18px; border-radius: var(--radius-m); background: var(--blue-05); display: flex; flex-direction: column; gap: 8px; }
+.booked-box b { color: var(--hal-blue); }
+
+/* Guest stories */
+.rating { display: flex; align-items: center; gap: 16px; }
+.rating__score { font-size: 3rem; line-height: 1; }
+.rating__meta { font-size: 0.9375rem; color: var(--neutral-70); }
+.rating__meta b { color: var(--neutral-90); }
+.stars { display: inline-flex; gap: 2px; color: var(--mes-orange); }
+.stars svg { width: 1.125rem; height: 1.125rem; fill: currentColor; }
+.stars--sm svg { width: 0.875rem; height: 0.875rem; }
+.stars-frac { position: relative; display: inline-block; line-height: 0; }
+.stars-frac .stars:first-child { color: var(--neutral-20); }
+.stars-frac .stars + .stars { position: absolute; inset: 0 auto 0 0; overflow: hidden; white-space: nowrap; }
+.sample { display: inline-block; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--neutral-60); padding: 2px 8px; border-radius: var(--radius-xl); box-shadow: inset 0 0 0 1px var(--neutral-20); vertical-align: 2px; }
+.stories { display: flex; flex-direction: column; gap: 20px; }
+.ai { display: flex; flex-direction: column; gap: 12px; }
+.ai__label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--neutral-60); }
+.ai__label .icon { width: 0.875rem; height: 0.875rem; color: var(--mes-orange); }
+.ai p { font-size: 1.0625rem; line-height: 1.6; text-wrap: pretty; }
+.caveats { padding: 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); }
+.caveats b { display: block; color: var(--neutral-90); margin-bottom: 6px; }
+.caveats ul { list-style: disc; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 0.9375rem; color: var(--neutral-70); }
+.stories__photos { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
+.ugc-photo { position: relative; display: block; width: 100%; min-height: 9.5rem; border-radius: var(--radius-m); overflow: hidden; transition: transform var(--fast) var(--ease); }
+.ugc-photo:active { transform: scale(0.97); }
+.ugc-photo img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.ugc-photo__more { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(3,15,31,0.5); color: var(--white); font-weight: 700; font-size: 1.0625rem; }
+.ugc-photo__by { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 8px 7px; font-size: 0.75rem; font-weight: 700; color: var(--white); text-align: left; background: linear-gradient(rgba(3,15,31,0), rgba(3,15,31,0.75)); }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.filters button { min-height: 36px; padding: 7px 14px; border-radius: var(--radius-xl); font-size: 0.875rem; font-weight: 700; color: var(--hal-blue); box-shadow: inset 0 0 0 1px var(--blue-1); }
+.filters button[aria-pressed="true"] { background: var(--hal-blue); color: var(--white); box-shadow: none; }
+.filters__count { font-size: 0.875rem; margin-top: 12px; }
+.review { padding: 20px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.review__who { display: flex; align-items: center; gap: 12px; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; color: var(--hal-blue); background: var(--blue-05); }
+.review__name { font-weight: 700; }
+.review__meta { font-size: 0.8125rem; color: var(--neutral-70); }
+.review__text { text-wrap: pretty; }
+.review__photos { display: flex; gap: 8px; }
+.review__photos .ugc-photo { width: 4.5rem; min-height: 0; aspect-ratio: 1; border-radius: 10px; }
+.review__foot { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; font-size: 0.8125rem; color: var(--neutral-70); }
+.tag { padding: 2px 8px; border-radius: var(--radius-xl); background: var(--neutral-5); font-weight: 600; }
+.helpful { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 10px; border-radius: var(--radius-xl); font-weight: 700; color: var(--hal-blue); font-size: 0.8125rem; }
+.helpful[aria-pressed="true"] { background: var(--blue-05); }
+.helpful .icon { width: 1rem; height: 1rem; stroke-width: 2; }
+.reviews__more { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 20px; }
+
+/* Expand in place */
+.reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--slow) var(--ease), opacity var(--slow) var(--ease); opacity: 0; visibility: hidden; }
+.reveal > div { overflow: hidden; min-height: 0; }
+.reveal.is-open { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
+[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.chev { transition: transform var(--base) var(--ease); }
+
+/* Policies: summary always visible in the sub line */
+.acc { border-top: 1px solid var(--border); }
+.acc:last-child { border-bottom: 1px solid var(--border); }
+.acc__head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 0; text-align: left; }
+.acc__head > .icon:first-child { color: var(--hal-blue); }
+.acc__titles { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.acc__title { font-weight: 700; color: var(--hal-blue); font-size: 1.0625rem; }
+.acc__sub { font-size: 0.875rem; color: var(--neutral-70); }
+.acc .chev { width: 1.25rem; height: 1.25rem; stroke-width: 2; color: var(--hal-blue); }
+.acc__body { padding: 0 0 18px 36px; display: flex; flex-direction: column; gap: 10px; font-size: 0.9375rem; }
+.acc__body ul { list-style: disc; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+
+/* Closing invitation — Delftware card (from ShoreEx) */
+.closing { position: relative; margin: 44px auto 20px; width: 100%; max-width: 480px; border-radius: var(--radius-l);
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+  padding: 24% 10% calc(93.1% + 28px);
+  background: url("assets/closing-delft-corners.jpg") center top / 100% auto no-repeat, url("assets/closing-delft-scene.jpg") center bottom / 100% auto no-repeat, #FFFFFF;
+  box-shadow: 0 0 0 1px var(--border); color: var(--hal-blue); cursor: pointer; transition: box-shadow var(--fast) var(--ease), transform var(--fast) var(--ease); }
+.closing:hover { box-shadow: 0 0 0 1px var(--border), 0 8px 24px rgba(2,30,70,0.14); transform: translateY(-2px); }
+.closing:has(.closing__hit:focus-visible) { box-shadow: var(--focus); }
+.closing__hit { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
+.closing__hit:focus-visible { box-shadow: none; }
+.closing__title { font-family: var(--font-display); font-weight: 400; font-size: 1.75rem; line-height: 1.12; letter-spacing: -0.01em; text-wrap: balance; }
+.closing__sub { font-size: 1rem; line-height: 1.45; color: var(--neutral-70); max-width: 30ch; text-wrap: pretty; }
+.closing__cta { margin-top: 4px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Footer: sample-data note + prototype states */
+.foot-note { padding: 24px 0 36px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; font-size: 0.8125rem; color: var(--neutral-60); }
+.proto__toggle { color: var(--neutral-70); font-size: 0.75rem; font-weight: 700; padding: 8px 14px; border-radius: 360px; box-shadow: inset 0 0 0 1px var(--border); }
+.proto__panel { width: min(100%, 340px); text-align: left; background: #fff; color: var(--neutral-90); border-radius: 14px; box-shadow: var(--shadow-card); padding: 14px; display: flex; flex-direction: column; gap: 12px; font-size: 0.8125rem; line-height: 1.4; }
+.proto__label { font-weight: 700; color: var(--hal-blue); margin-bottom: 6px; }
+.proto__opts { display: flex; flex-wrap: wrap; gap: 4px; }
+.proto__opts button { min-height: 32px; padding: 6px 10px; border-radius: 6px; color: var(--neutral-70); font-weight: 600; background: var(--neutral-5); }
+.proto__opts button[aria-pressed="true"] { background: var(--hal-blue); color: #fff; }
+
+/* ================= Buttons, bar, card ================= */
+.btn { min-height: 48px; padding: 0 22px; border-radius: var(--radius-xl); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.0625rem; font-weight: 600; background: var(--hal-blue); color: var(--white); transition: background var(--fast) var(--ease), transform var(--fast) var(--ease); text-align: center; }
+.btn:hover:not(:disabled) { background: var(--primary-hover); }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn:disabled { background: var(--neutral-10); color: var(--neutral-60); cursor: not-allowed; }
+.btn--ghost { background: transparent; color: var(--hal-blue); box-shadow: inset 0 0 0 1.5px var(--hal-blue); }
+.btn--ghost:hover:not(:disabled) { background: var(--neutral-5); }
+.btn--danger { background: transparent; color: var(--alert); box-shadow: inset 0 0 0 1.5px var(--alert); }
+.btn--danger:hover:not(:disabled) { background: #FFF2F2; }
+.btn--solid-danger { background: var(--alert); }
+.btn--solid-danger:hover:not(:disabled) { background: #8E0000; }
+.btn--block { width: 100%; }
+.btn .icon { width: 1.25rem; height: 1.25rem; stroke-width: 2; }
+
+.booking-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--white); box-shadow: var(--shadow-bar); border-top: 1px solid var(--border); padding: 12px 0 calc(12px + var(--safe-bottom)); }
+.booking-bar .container { display: flex; align-items: center; gap: 12px; }
+.bar__summary { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; text-align: left; }
+.bar__line1 { font-weight: 700; color: var(--hal-blue); font-size: 1.0625rem; }
+.bar__line2 { font-size: 0.8125rem; color: var(--neutral-70); }
+.bar__line2 .few { color: var(--orange-text); font-weight: 700; }
+.bar__line2 > span { white-space: nowrap; }
+.bar__unit, .card__unit { font-weight: 400; font-size: 0.875rem; color: var(--neutral-70); font-family: var(--font-body); letter-spacing: 0; }
+.booking-bar .btn { flex: none; white-space: nowrap; }
+.page { padding-bottom: var(--bar-h); overflow-x: clip; }
+.booking-card { display: none; }
+
+/* ================= Sheets ================= */
+.sheet-layer { position: fixed; inset: 0; z-index: 40; pointer-events: none; visibility: hidden; transition: visibility 0s linear var(--slow); }
+.sheet-layer.is-open { pointer-events: auto; visibility: visible; transition-delay: 0s; }
+.scrim { position: absolute; inset: 0; background: rgba(3,15,31,0.48); opacity: 0; transition: opacity var(--slow) var(--ease); }
+.is-open > .scrim { opacity: 1; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 92%; background: var(--white); border-radius: var(--radius-l) var(--radius-l) 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: transform var(--slow) var(--ease); }
+.sheet-layer.is-open .sheet { transform: none; }
+.sheet__grab { flex: none; display: flex; justify-content: center; padding-top: 8px; }
+.sheet__grab::before { content: ""; width: 36px; height: 5px; border-radius: 3px; background: var(--neutral-20); }
+.sheet__head { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 12px 8px; }
+.sheet__close { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--hal-blue); }
+.sheet__close .icon { stroke-width: 2; }
+.sheet__title { flex: 1; text-align: center; margin-right: 52px; font-size: 1.0625rem; font-weight: 700; color: var(--hal-blue); }
+.sheet__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 4px 20px 16px; }
+.sheet__foot { flex: none; padding: 12px 20px calc(14px + var(--safe-bottom)); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.step { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--neutral-60); margin: 0 0 10px; }
+.ctx { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--radius-m); background: var(--blue-05); margin-bottom: 14px; }
+.ctx .icon { color: var(--hal-blue); }
+.ctx b { display: block; color: var(--hal-blue); font-size: 0.9375rem; }
+.ctx span { font-size: 0.8125rem; color: var(--neutral-70); }
+.rv { display: flex; flex-direction: column; }
+.rv__row { display: grid; grid-template-columns: 6.5rem 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9375rem; }
+.rv__row > span:first-child { color: var(--neutral-70); }
+.rv__row b { color: var(--hal-blue); display: block; }
+.rv__row small { display: block; font-size: 0.8125rem; color: var(--neutral-70); margin-top: 2px; }
+.rv__row--credit b { color: var(--success-text); }
+.rv__row--total { border-bottom: 0; }
+.rv__row--total b { font-size: 1.25rem; }
+.steps { counter-reset: s; display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 0.9375rem; }
+.steps li::before { content: counter(s); width: 26px; height: 26px; border-radius: 50%; background: var(--hal-blue); color: var(--white); font-size: 0.8125rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.steps b { color: var(--hal-blue); }
+.policy-box { margin-top: 16px; }
+.fine { font-size: 0.8125rem; color: var(--neutral-70); text-align: center; }
+.confirm { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0; }
+.confirm__mark { width: 64px; height: 64px; border-radius: 50%; background: var(--success-soft); color: var(--success); display: flex; align-items: center; justify-content: center; }
+.confirm__mark--wait { background: var(--blue-05); color: var(--hal-blue); }
+.confirm__mark svg { width: 34px; height: 34px; stroke-width: 2.4; stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw 500ms 120ms var(--ease) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.confirm__title { font-size: 1.625rem; }
+.confirm__card { width: 100%; margin-top: 8px; text-align: left; padding: 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); display: flex; flex-direction: column; gap: 4px; font-size: 0.9375rem; }
+.confirm__card b { color: var(--hal-blue); }
+
+/* ================= Lightbox ================= */
+.lightbox { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; color: var(--white);
+  background: rgba(3,12,26,0.82); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  opacity: 0; visibility: hidden; transition: opacity var(--base) var(--ease), visibility 0s linear var(--base); }
+.lightbox.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
+.lb-top { flex: none; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: calc(var(--safe-top) + 12px) 12px 8px; }
+.lb-count { justify-self: center; padding: 4px 12px; border-radius: 360px; background: rgba(10,22,40,0.55); font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+.lb-close { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--white); background: rgba(10,22,40,0.55); }
+.lb-close .icon { stroke-width: 2; }
+.lb-track { flex: 1; display: flex; align-items: center; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 12px 28px 24px; scroll-padding: 0 28px; }
+.lb-track::-webkit-scrollbar { display: none; }
+.lb-slide { flex: 0 0 min(100%, 440px); scroll-snap-align: center; align-self: stretch; max-height: 640px; display: flex; flex-direction: column; background: var(--white); border-radius: 24px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.35); transition: transform var(--slow) var(--ease), opacity var(--slow) var(--ease); }
+.lb-slide[aria-hidden="true"] { transform: scale(0.96); opacity: 0.55; }
+.lb-img { flex: none; height: min(48vh, 400px); }
+.lb-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lb-body { flex: 1; padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.lb-title { font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; line-height: 1.15; color: var(--hal-blue); }
+.lb-text { font-size: 1rem; line-height: 1.55; color: var(--neutral-70); text-wrap: pretty; }
+.lb-nav { flex: none; display: flex; justify-content: center; gap: 12px; padding: 0 0 calc(20px + var(--safe-bottom)); }
+.lb-nav .round-btn { background: rgba(10,22,40,0.55); color: var(--white); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.7); }
+.lb-nav .round-btn:disabled { opacity: 0.35; cursor: default; }
+
+.toast { position: fixed; left: 50%; bottom: calc(var(--bar-h) + 16px); z-index: 60; transform: translate(-50%, 10px); opacity: 0; pointer-events: none; background: var(--neutral-90); color: var(--white); font-size: 0.9375rem; font-weight: 600; padding: 12px 18px; border-radius: var(--radius-xl); box-shadow: var(--shadow-card); transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease); width: max-content; max-width: calc(100% - 40px); text-align: center; }
+.toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ================= Tablet ≥ 640 ================= */
+@media (min-width: 640px) {
+  :root { --page-pad: 32px; --content-max: 784px; }
+  .hero { height: calc(clamp(320px, 48svh, 480px) + var(--safe-top)); }
+  .hero__title { font-size: 2.625rem; }
+  .why__title, .section__title { font-size: 2rem; }
+  .hero { height: calc(clamp(440px, 60svh, 560px) + var(--safe-top)); }
+  .moments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .moment { grid-template-columns: 1fr; gap: 12px; }
+  .thumb { width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; }
+  .pack { grid-template-columns: 1fr 1fr; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+  .sheet { left: 50%; right: auto; width: 560px; transform: translate(-50%, 100%); }
+  .sheet-layer.is-open .sheet { transform: translate(-50%, 0); }
+  .jump { box-shadow: 0 0 0 100vmax rgba(255,255,255,0.97); clip-path: inset(0 -100vmax -16px); }
+  .jump.is-stuck { box-shadow: 0 0 0 100vmax rgba(255,255,255,0.97), 0 1px 0 var(--border), 0 6px 14px rgba(3,15,31,0.05); }
+  .closing { max-width: none; aspect-ratio: 2 / 1; align-items: flex-start; justify-content: center; text-align: left;
+    padding: 6% 0 6% 10%; background: url("assets/closing-delft-wide-v2.jpg") right bottom / 100% auto no-repeat, #FFFFFF; }
+  .closing__title, .closing__sub { max-width: 38%; }
+}
+
+/* ================= Desktop ≥ 1024 ================= */
+@media (min-width: 1024px) {
+  :root { --page-pad: 40px; --content-max: 1280px; --bar-h: 0px; --compact-h: 60px; }
+  .page { padding-bottom: 0; }
+  .booking-bar { display: none; }
+  .hero { height: min(600px, 66vh); min-height: 480px; }
+  .hero__top { padding: 0 24px; top: 24px; }
+  .hero__body { padding-bottom: 18px; }
+  .hero__title { font-size: 3.25rem; max-width: 16ch; }
+  .hero__scrim::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2,30,70,0.6) 0%, rgba(2,30,70,0.3) 32%, rgba(2,30,70,0) 58%); }
+  .compact-header { border-bottom: 1px solid var(--border); }
+  .compact-header__inner { height: 60px; padding: 0 calc(var(--page-pad) - 12px); }
+  .compact-header__text { text-align: left; margin-right: 0; display: flex; align-items: baseline; gap: 12px; }
+  .compact-header__title { font-size: 1rem; }
+  .compact-header__ctx { font-size: 0.875rem; }
+
+  .layout { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 380px; column-gap: 64px; align-items: start; }
+  .why { grid-column: 1; grid-row: 1; padding: 20px 0 48px; }
+  .why__rule { width: calc(100% + 64px + 380px); max-width: none; }
+  .main-col { min-width: 0; grid-column: 1; grid-row: 2; }
+  .hero__facts { font-size: 1rem; gap: 8px 24px; }
+  .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .why__title { font-size: 2.25rem; }
+  .moments { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .thumb { aspect-ratio: 3 / 2; border-radius: 16px; }
+  .jump { margin: 32px 0 0; box-shadow: none; clip-path: none; }
+  .jump.is-stuck { box-shadow: 0 10px 12px -10px rgba(3,15,31,0.12); }
+  .jump__track { padding: 12px 0; }
+  .section { padding-top: 44px; }
+  .section--mobile-only { display: none; }
+  .lead { font-size: 1.1875rem; max-width: 62ch; }
+  .stories__photos { height: 220px; grid-template-columns: 1.6fr 1fr; gap: 10px; }
+  .ugc-photo { min-height: 0; }
+  .closing__title { font-size: 2rem; }
+  .toast { bottom: 32px; }
+
+  /* Booking card rises into the hero beside the title, then stays in view */
+  .booking-card { display: flex; flex-direction: column; gap: 20px; grid-column: 2; grid-row: 1 / span 2; position: sticky; top: calc(var(--compact-h) + 20px); margin-top: -190px; padding: 28px; background: var(--white); border-radius: var(--radius-l); box-shadow: var(--shadow-card), 0 0 0 1px rgba(3,15,31,0.04); z-index: 5;
+    max-height: calc(100vh - var(--compact-h) - 40px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .card__ctx { font-size: 0.8125rem; color: var(--neutral-70); }
+  .card__price { font-size: 2rem; line-height: 1.1; }
+  .card__date { font-size: 0.875rem; color: var(--neutral-70); }
+  .booking-card .slot { padding-left: 10px; padding-right: 10px; }
+  .booking-card .slot[aria-checked="true"] { padding-left: 9.5px; padding-right: 9.5px; }
+
+  .sheet { left: 50%; top: 50%; bottom: auto; width: 500px; max-height: min(760px, 90vh); border-radius: var(--radius-l); opacity: 0; transform: translate(-50%, -46%); transition: transform var(--slow) var(--ease), opacity var(--slow) var(--ease); }
+  .sheet-layer.is-open .sheet { opacity: 1; transform: translate(-50%, -50%); }
+  .sheet__grab { display: none; }
+  .sheet__head { padding-top: 12px; }
+  .lb-track { padding-left: calc(50% - 220px); padding-right: calc(50% - 220px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; animation-delay: 0ms !important; scroll-behavior: auto !important; }
+  .confirm__mark svg { stroke-dashoffset: 0; }
+  .slide.is-kb img { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M17 7L7 17M7 7l10 10"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2"/></symbol>
+    <symbol id="i-act" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+    <symbol id="i-group" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-lang" viewBox="0 0 24 24"><path d="M6.5 2.5h1.7M2 5.6h12.4M12.4 5.6L4.1 14.4M5.3 8l5.9 6.4M12 22.1l5-9.5 5 9.5M13.8 18.5h6.4"/></symbol>
+    <symbol id="i-age" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></symbol>
+    <symbol id="i-access" viewBox="0 0 24 24"><path d="M16 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM18 19l1-7-6 1M5 8l3-3 5.5 3-2.36 3.5M4.24 14.5a5 5 0 0 0 6.88 6M13.76 17.5a5 5 0 0 0-6.88-6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+    <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 10v12M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88z"/></symbol>
+    <symbol id="i-ship" viewBox="0 0 24 24"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6M12 10v4M12 2v3"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 7c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 10h20"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+  </defs>
+</svg>
+
+<!-- Slim back bar (appears when the jump nav pins) -->
+<div class="compact-header" id="compact" aria-hidden="true">
+  <div class="compact-header__inner">
+    <button class="compact-header__back" type="button" data-action="back" aria-label="Back to Day 4 · Juneau" tabindex="-1"><svg class="icon"><use href="#i-back"/></svg></button>
+    <div class="compact-header__text">
+      <div class="compact-header__title">Whales &amp; Mendenhall Glacier Trail</div>
+      <div class="compact-header__ctx" data-bind="compact-ctx">Sat, Dec 12 · Day 4 · Juneau</div>
+    </div>
+  </div>
+</div>
+
+<main class="page" id="page">
+
+  <header class="hero">
+    <div class="gallery" id="gallery" aria-hidden="true"></div>
+    <div class="hero__blur" aria-hidden="true"></div>
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="hero__top">
+      <button class="round-btn" type="button" data-action="back" aria-label="Back to Day 4 · Juneau"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg></button>
+      <div class="hero__ctrl">
+        <div class="dots" data-bind="dots" role="group" aria-label="Hero photos"></div>
+        <button class="hero__pause" type="button" data-action="slideshow" aria-pressed="false" aria-label="Pause slideshow"><svg class="icon" aria-hidden="true"><use href="#i-pause"/></svg></button>
+      </div>
+    </div>
+    <div class="hero__body">
+      <div class="container">
+        <button class="status-chip" type="button" data-action="goto-times" data-bind="status-chip"><span class="status-chip__dot" aria-hidden="true"></span><span data-bind="status-text"></span></button>
+        <p class="hero__eyebrow">Day 4 · Juneau, Alaska</p>
+        <h1 class="hero__title">Alaska’s Whales &amp; Mendenhall Glacier Trail</h1>
+        <ul class="hero__facts" aria-label="Key facts">
+          <li><svg class="icon" aria-hidden="true"><use href="#i-cal"/></svg>Sat, Dec 12</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>5 hours</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-act"/></svg>Moderate · 1.5 mi gravel</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-access"/></svg><a href="#expect" data-action="goto" data-target="expect">Not wheelchair accessible</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+<div class="container layout">
+  <!-- Why go -->
+  <section class="why" aria-labelledby="why-h">
+    <hr class="why__rule">
+    <div class="why__head">
+      <span class="eyebrow">Why go</span>
+      <h2 class="display why__title" id="why-h">Three moments you’ll talk about at dinner</h2>
+    </div>
+    <ol class="moments" data-bind="moments"></ol>
+  </section>
+
+  <div class="main-col">
+    <nav class="jump" id="jump" aria-label="Jump to section">
+      <div class="jump__track" id="jump-track"></div>
+    </nav>
+
+    <!-- The day -->
+    <section class="section" id="day" data-section aria-labelledby="day-h">
+      <div class="section__head"><span class="eyebrow">Your day</span><h2 class="display section__title" id="day-h">From Auke Bay to the ice</h2></div>
+      <p class="lead">Your naturalist reads Stephens Passage for blows and bubble nets while the boat lets the whales set the pace. Ashore, the trail ends at Nugget Falls, close enough to feel the cold air coming off the glacier.</p>
+      <div class="timeline">
+        <h3 class="sub-h" data-bind="tl-head">Your 7:45 AM departure</h3>
+        <p class="timeline__note">Times follow the departure you choose. Total about 5 hours.</p>
+        <ol data-bind="timeline"></ol>
+      </div>
+      <div class="pack">
+        <div class="pack__card">
+          <h3>Included</h3>
+          <ul class="ticks">
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Naturalist-guided whale watching</li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Guided walk to Nugget Falls</li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Coach transfers, snack and bottled water</li>
+            <li class="no"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Gratuities for your guide (optional)</li>
+          </ul>
+        </div>
+        <div class="pack__card">
+          <h3>Bring</h3>
+          <ul class="ticks">
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Warm layers and a waterproof jacket</li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Shoes with grip for wet gravel</li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Ship card and photo ID (needed to board)</li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Binoculars, if you have them</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Suitability: everything a guest needs to rule it in or out, no modal -->
+    <!-- What to expect: scannable facts + who it suits, no modal -->
+    <section class="section" id="expect" data-section aria-labelledby="expect-h">
+      <div class="section__head"><span class="eyebrow">What to expect</span><h2 class="display section__title" id="expect-h">Moderate pace, some trails</h2></div>
+      <div class="tiles">
+        <div class="tile"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span class="tile__text"><span class="tile__label">Duration</span><span class="tile__value">5 hours</span></span></div>
+        <div class="tile"><svg class="icon" aria-hidden="true"><use href="#i-act"/></svg><span class="tile__text"><span class="tile__label">Activity</span><span class="tile__value">Moderate</span></span></div>
+        <div class="tile"><svg class="icon" aria-hidden="true"><use href="#i-group"/></svg><span class="tile__text"><span class="tile__label">Group</span><span class="tile__value">Up to 20</span></span></div>
+        <div class="tile"><svg class="icon" aria-hidden="true"><use href="#i-lang"/></svg><span class="tile__text"><span class="tile__label">Language</span><span class="tile__value">English</span></span></div>
+      </div>
+      <div class="love">
+        <h3>You’ll love it if…</h3>
+        <ul>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>A chilly deck is a fair trade for a humpback surfacing nearby</span></li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>You’re happy walking 1.5 miles of gravel trail, with a few short inclines</span></li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>You like a small group: 20 guests at most, all 18 or older</span></li>
+        </ul>
+      </div>
+      <p class="access-tile"><svg class="icon" aria-hidden="true"><use href="#i-access"/></svg><span><b>Accessibility</b>Not wheelchair accessible. You’ll board by a floating dock and ramp and walk an uneven gravel trail. Questions? Call <a class="link" href="tel:18884259376">1.888.425.9376</a> or ask the Shore Excursions desk.</span></p>
+    </section>
+
+    <!-- Price & times (phone/tablet; desktop uses the booking card) -->
+    <section class="section section--mobile-only" id="times" data-section aria-labelledby="times-h">
+      <div class="section__head"><span class="eyebrow">Price &amp; times</span><h2 class="display section__title" id="times-h">$259 per guest</h2></div>
+      <div data-bind="times-body"></div>
+    </section>
+
+    <!-- Reviews -->
+    <section class="section" id="reviews" data-section aria-labelledby="reviews-h">
+      <div class="section__head"><span class="eyebrow">Guest reviews</span><h2 class="display section__title" id="reviews-h">What guests are saying</h2></div>
+      <div class="stories">
+        <div class="rating">
+          <span class="rating__score display">4.8</span>
+          <div><div data-bind="rating-stars"></div><p class="rating__meta"><b>1,240 ratings</b> · 96% would recommend</p></div>
+        </div>
+        <div class="ai">
+          <span class="ai__label"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg>Summarized from guest reviews</span>
+          <p>Guests say the humpbacks steal the show, often bubble-net feeding close to the boat, and that the naturalists make a small group feel personal.</p>
+          <div class="caveats"><b>What some guests mention</b>
+            <ul><li>It’s cold on deck, even in summer. Layers help.</li><li>The ride out can be choppy if you’re prone to seasickness.</li><li>The trail gets muddy after rain, and a few wanted longer at the glacier.</li></ul>
+          </div>
+        </div>
+        <div class="stories__photos" data-bind="story-photos"></div>
+      </div>
+      <button class="btn btn--ghost" type="button" data-action="reveal" data-target="reviews-panel" data-open="Hide reviews" data-closed="Read reviews" aria-expanded="false" aria-controls="reviews-panel" style="margin-top:20px"><span>Read reviews</span><svg class="icon chev" aria-hidden="true"><use href="#i-down"/></svg></button>
+      <div class="reveal" id="reviews-panel"><div>
+        <div class="filters" role="group" aria-label="Filter reviews" data-bind="filters"></div>
+        <p class="muted filters__count" data-bind="review-count" aria-live="polite"></p>
+        <ul data-bind="reviews"></ul>
+        <div class="reviews__more" data-bind="reviews-more"></div>
+      </div></div>
+    </section>
+
+    <!-- Policies -->
+    <section class="section" id="policies" data-section aria-labelledby="policies-h">
+      <div class="section__head"><span class="eyebrow">Before you book</span><h2 class="display section__title" id="policies-h">Good to know</h2></div>
+      <div data-bind="policies"></div>
+    </section>
+
+    <aside class="closing" data-bind="closing" aria-label="Reserve this excursion"></aside>
+  </div>
+
+  <!-- Desktop booking card -->
+  <aside class="booking-card" aria-label="Book this excursion" data-bind="card"></aside>
+</div>
+
+  <footer class="foot-note container">
+    <p>Prototype with sample content. Prices, availability, credits and reviews are illustrative, and nothing is booked or charged.</p>
+    <button class="proto__toggle" type="button" data-action="proto-toggle" aria-expanded="false" aria-controls="proto-panel">Prototype states</button>
+    <div class="proto__panel" id="proto-panel" hidden>
+      <div><div class="proto__label">7:45 AM availability</div><div class="proto__opts" data-bind="proto-first"></div></div>
+      <div><div class="proto__label">Excursion credits on the stateroom</div><div class="proto__opts" data-bind="proto-credits"></div></div>
+      <div><button class="link" type="button" data-action="proto-reset">Reset booking and waitlist</button></div>
+    </div>
+  </footer>
+</main>
+
+<!-- Mobile booking bar -->
+<div class="booking-bar" role="region" aria-label="Reserve">
+  <div class="container" data-bind="bar"></div>
+</div>
+
+<!-- Sheet / dialog -->
+<div class="sheet-layer" id="sheet-layer">
+  <div class="scrim" data-action="close-sheet"></div>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet__grab"></div>
+    <div class="sheet__head">
+      <button class="sheet__close" type="button" data-action="close-sheet" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+      <h2 class="sheet__title" id="sheet-title" data-bind="sheet-title" tabindex="-1"></h2>
+    </div>
+    <div class="sheet__body" data-bind="sheet-body"></div>
+    <div class="sheet__foot" data-bind="sheet-foot" hidden></div>
+  </section>
+</div>
+
+<!-- Photo viewer -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photos">
+  <div class="lb-top"><span></span><span class="lb-count" data-bind="lb-count" aria-live="polite">1 of 3</span><button class="lb-close" type="button" data-action="close-lightbox" aria-label="Close photos"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <div class="lb-track" id="lb-track" tabindex="0" aria-label="Use arrow keys to move between photos"></div>
+  <div class="lb-nav">
+    <button class="round-btn" type="button" data-action="lb-prev" aria-label="Previous photo"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <button class="round-btn" type="button" data-action="lb-next" aria-label="Next photo"><svg class="icon" aria-hidden="true"><use href="#i-next"/></svg></button>
+  </div>
+</div>
+
+<div class="toast" role="status" aria-live="polite" data-bind="toast"></div>
+<div class="sr-only" aria-live="polite" data-bind="live"></div>
+
+<script>
+(() => {
+  /* ======================= Sample content (single source of truth) ======================= */
+  const VOYAGE = { ship: 'Koningsdam', day: 'Day 4 · Juneau', dateLong: 'Saturday, December 12, 2026', dateMed: 'Saturday, Dec 12', dateShort: 'Sat, Dec 12', prevDay: 'Fri, Dec 11', ymd: '20261212', stateroom: 'Stateroom 7042', allAboard: '8:30 PM' };
+  const PRICE = 259, CREDIT_VALUE = 100, MAX_GUESTS = 6, HOLD_HOURS = 2;
+  const MEET = 'Pier 2, Gangway 4';
+  const DEPS = [
+    { time: '7:45\u00a0AM', min: 465, status: 'few', spots: 3 },
+    { time: '10:15\u00a0AM', min: 615, status: 'available', spots: 14 },
+    { time: '1:30\u00a0PM', min: 810, status: 'waitlist', spots: 0 }
+  ];
+  // Minutes relative to departure. Adds up to the 5 hours quoted everywhere.
+  const TIMELINE = [
+    { at: -20, what: `Meet at ${MEET}`, note: 'Bring your ship card and photo ID' },
+    { at: 0, what: 'Coach to Auke Bay', note: 'About 25 minutes · board by floating dock and ramp' },
+    { at: 30, what: 'Whale watching in Stephens Passage', note: 'About 2 hours on a small boat · snack and water' },
+    { at: 165, what: 'Walk to Nugget Falls', note: '1.5 miles round trip on uneven gravel · about 1½ hours' },
+    { at: 300, what: 'Back at the ship', note: `All aboard is ${'8:30 PM'}` }
+  ];
+  const HERO = [
+    { src: 'assets/hero-2-bubble-net.jpg', title: 'Humpbacks bubble-net feeding' },
+    { src: 'assets/hero-2-whale-breach.jpg', title: 'A humpback surfacing near the shore' },
+    { src: 'assets/hero-4-mendenhall-trail.jpg', title: 'The trail toward Mendenhall Glacier' }
+  ];
+  const MOTION = [
+    { ox: '50%', oy: '60%', fx: '0%', fy: '0%', tx: '-2%', ty: '-1%' },
+    { ox: '60%', oy: '50%', fx: '1%', fy: '0%', tx: '-2%', ty: '-1%' },
+    { ox: '40%', oy: '60%', fx: '-1%', fy: '1%', tx: '2%', ty: '-2%' }
+  ];
+  const MOMENTS = [
+    { img: 'assets/moment-1-humpback.jpg', alt: 'A humpback whale breaching in front of a forested shoreline', title: 'Humpbacks up close', text: 'A naturalist reads the water for blows and bubble nets.', more: 'The boat slows and lets the whales set the pace. Orcas, sea lions and bald eagles often join in. If no whale is seen, you get a partial refund.' },
+    { img: 'assets/moment-2-nugget-falls.jpg', alt: 'Nugget Falls pouring onto a rocky beach beside Mendenhall Glacier', title: 'A walk to the falls', text: '1.5 miles of gravel trail to Nugget Falls, beside the glacier.', more: 'An uneven gravel trail with a few short inclines ends at the roar of Nugget Falls, close enough to feel the cold air off the ice.' },
+    { img: 'assets/ugc-6-crew-selfie.jpg', pos: '50% 30%', alt: 'Guests smiling with their whale-watching crew at the dock', title: 'Just 20 guests aboard', text: 'A window for everyone and time for questions.', more: 'A small boat means a window for everyone and a crew with time to answer your questions.' }
+  ];
+  const UGC = [
+    { img: 'assets/ugc-1-mendenhall-selfie.jpg', by: 'Lena R.', ship: 'Koningsdam · Aug 2026', cap: 'Our selfie at Mendenhall Lake, with the glacier behind us' },
+    { img: 'assets/ugc-2-orca-camera.jpg', by: 'Tom H.', ship: 'Koningsdam · Jul 2026', cap: 'An orca surfacing, caught on my camera screen' },
+    { img: 'assets/ugc-3-sea-lion-haulout.jpg', by: 'Dee W.', ship: 'Nieuw Amsterdam · Aug 2026', cap: 'Steller sea lions piled up on a rocky haul-out' },
+    { img: 'assets/ugc-4-humpback-breach.jpg', by: 'Priya S.', ship: 'Koningsdam · Jun 2026', cap: 'A humpback breaching, flipper and all' },
+    { img: 'assets/ugc-5-bubble-net.jpg', by: 'Lena R.', ship: 'Koningsdam · Aug 2026', cap: 'Humpbacks bubble-net feeding, with the gulls right behind' },
+    { img: 'assets/ugc-6-crew-selfie.jpg', by: 'Marcus T.', ship: 'Eurodam · Jul 2026', cap: 'With our whale-watching crew at the dock' },
+    { img: 'assets/ugc-7-buoy-sea-lions.jpg', by: 'Jordan K.', ship: 'Zuiderdam · Jun 2026', cap: 'Sea lions napping on a channel buoy' },
+    { img: 'assets/ugc-8-glacier-overlook.jpg', by: 'Ana G.', ship: 'Eurodam · Sep 2026', cap: 'Looking out over Mendenhall Glacier' }
+  ];
+  const REVIEWS = [
+    { name: 'Lena R.', meta: 'Koningsdam · Aug 2026', stars: 5, text: 'We saw five humpbacks bubble-net feeding, and the captain cut the engines so we could hear them breathe. The glacier walk was easy and the falls were stunning.', tags: ['Whales', 'Guides'], photos: [4, 0], helpful: 48 },
+    { name: 'Marcus T.', meta: 'Eurodam · Jul 2026', stars: 5, text: 'The small group made all the difference. Everyone had a window and the naturalist answered every question. Bring layers; it was cold on deck.', tags: ['Guides', 'Pace'], photos: [5], helpful: 31 },
+    { name: 'Priya S.', meta: 'Koningsdam · Jun 2026', stars: 4, text: 'Rainy day, but the whales didn’t care. The trail to Nugget Falls is gravel, not steep. I wish we’d had a few more minutes at the glacier.', tags: ['Glacier', 'Pace'], photos: [3], helpful: 22 },
+    { name: 'Robert M.', meta: 'Eurodam · Sep 2026', stars: 3, text: 'The whales were worth it, but I was queasy on the way out and the trail was muddier than I expected. Take seasickness tablets beforehand and wear proper shoes.', tags: ['Whales', 'Pace'], photos: [], helpful: 19 },
+    { name: 'Tom H.', meta: 'Koningsdam · Jul 2026', stars: 5, text: 'We had orcas as well as humpbacks. Our guide was fantastic with questions about how they track the whales.', tags: ['Whales', 'Guides'], photos: [1], helpful: 17 },
+    { name: 'Dee W.', meta: 'Nieuw Amsterdam · Aug 2026', stars: 5, text: 'Calm, well-organized day. We were back on board with time for a late lunch.', tags: ['Pace'], photos: [2], helpful: 9 },
+    { name: 'Ana G.', meta: 'Eurodam · Sep 2026', stars: 4, text: 'The glacier was the highlight for me. The boat was great, though it can get choppy if you’re prone to seasickness.', tags: ['Glacier', 'Whales'], photos: [7], helpful: 6 }
+  ];
+  const TOPICS = ['All', 'Whales', 'Glacier', 'Guides', 'Pace', '4★ and below'];
+
+  /* ======================= State ======================= */
+  const q = new URLSearchParams(location.search);
+  const FIRST = ['available', 'few', 'waitlist', 'soldout'];
+  const state = {
+    first: FIRST.includes(q.get('first')) ? q.get('first') : 'few',
+    credits: q.has('credits') ? Math.max(0, Math.min(2, +q.get('credits') || 0)) : 2,
+    useCredits: true, dep: 0, guests: 2,
+    booking: null, wait: null, notify: {},
+    sheet: null, flow: 2, gallery: 0, topic: 'All', reviewsAll: false, helpful: {}
+  };
+  const depList = () => DEPS.map((d, i) => i === 0 ? { ...d, status: state.first, spots: state.first === 'few' ? 3 : state.first === 'available' ? 12 : 0 } : d);
+  const cur = () => depList()[state.dep];
+  const bookable = (d) => d.status === 'few' || d.status === 'available';
+  const maxGuests = (d) => bookable(d) ? Math.min(MAX_GUESTS, d.spots) : MAX_GUESTS;
+  const money = (n) => (n < 0 ? '−' : '') + '$' + Math.abs(n).toLocaleString('en-US');
+  const fmt = (m) => { m = ((m % 1440) + 1440) % 1440; let h = Math.floor(m / 60); const mm = m % 60, ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${String(mm).padStart(2, '0')}\u00a0${ap}`; };
+  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  const deadline = (d) => `${VOYAGE.prevDay}, ${d.time}`;
+  const statusShort = (d) => d.status === 'few' ? `Only ${d.spots} left` : d.status === 'available' ? 'Available' : d.status === 'waitlist' ? 'Waitlist' : 'Full';
+  function totals(d = cur(), guests = state.guests) {
+    const sub = d.price ? d.price * guests : PRICE * guests;
+    const used = state.useCredits ? Math.min(state.credits, guests) : 0;
+    const credit = used * Math.min(CREDIT_VALUE, PRICE);
+    return { sub, used, credit, total: Math.max(0, sub - credit) };
+  }
+  // First departure a guest can actually pick: bookable first, otherwise a waitlist
+  function defaultDep() { const l = depList(); let i = l.findIndex(bookable); if (i < 0) i = l.findIndex(d => d.status === 'waitlist'); return Math.max(0, i); }
+  function normalizeDep() { if (cur().status === 'soldout') state.dep = defaultDep(); state.guests = Math.max(1, Math.min(state.guests, maxGuests(cur()))); }
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const bind = (n) => $(`[data-bind="${n}"]`);
+  const ic = (id, cls = 'icon') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const deskMQ = matchMedia('(min-width: 1024px)');
+
+  /* ======================= Hero slideshow (ambient, pausable) ======================= */
+  const SLIDE_MS = 6500;
+  const gallery = $('#gallery');
+  gallery.innerHTML = HERO.map((h, i) => { const m = MOTION[i];
+    return `<figure class="slide" style="--ox:${m.ox};--oy:${m.oy};--fx:${m.fx};--fy:${m.fy};--tx:${m.tx};--ty:${m.ty}"><img src="${h.src}" alt="" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></figure>`; }).join('');
+  bind('dots').innerHTML = HERO.map((h, i) => `<button type="button" data-action="gal-go" data-i="${i}" aria-label="Photo ${i + 1} of ${HERO.length}: ${h.title}" aria-current="${i === 0}"></button>`).join('');
+  const slides = [...gallery.children];
+  let slideTimer = null, userPaused = false, heroVisible = true;
+  function showSlide(i) {
+    i = (i + HERO.length) % HERO.length;
+    const prev = slides[state.gallery]; state.gallery = i;
+    slides.forEach((s, k) => s.classList.toggle('is-active', k === i));
+    const next = slides[i]; next.classList.remove('is-kb'); void next.offsetWidth; if (!reduced()) next.classList.add('is-kb');
+    if (prev && prev !== next) setTimeout(() => { if (!prev.classList.contains('is-active')) prev.classList.remove('is-kb'); }, 1900);
+    $$('button', bind('dots')).forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
+  }
+  const playing = () => !userPaused && heroVisible && !document.hidden && !reduced();
+  function schedule() { clearTimeout(slideTimer); if (playing()) slideTimer = setTimeout(() => { showSlide(state.gallery + 1); schedule(); }, SLIDE_MS); }
+  function setPaused(p) {
+    userPaused = p; const b = $('.hero__pause');
+    b.setAttribute('aria-pressed', String(p)); b.setAttribute('aria-label', p ? 'Play slideshow' : 'Pause slideshow');
+    $('use', b).setAttribute('href', p ? '#i-play' : '#i-pause');
+    slides.forEach(s => s.firstElementChild.style.animationPlayState = p ? 'paused' : '');
+    schedule();
+  }
+  new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; schedule(); }, { threshold: 0.2 }).observe($('.hero'));
+  document.addEventListener('visibilitychange', schedule);
+  if (reduced()) $('.hero__pause').hidden = true;
+  showSlide(0); schedule();
+
+  /* ======================= Why go + photo viewer ======================= */
+  bind('moments').innerHTML = MOMENTS.map((m, k) => `<li>
+      <button class="moment" type="button" data-action="lightbox" data-set="moments" data-i="${k}" aria-haspopup="dialog">
+        <span class="thumb"><img src="${m.img}" alt="" loading="lazy" decoding="async"${m.pos ? ` style="object-position:${m.pos}"` : ''}></span>
+        <span class="moment__copy"><span class="moment__title">${m.title}</span><span class="moment__text">${m.text}</span></span>
+      </button></li>`).join('');
+
+  const lb = $('#lightbox'), lbTrack = $('#lb-track');
+  const LB_SETS = {
+    moments: () => MOMENTS.map(m => ({ img: m.img, alt: m.alt, pos: m.pos, title: m.title, text: m.more })),
+    ugc: () => UGC.map(p => ({ img: p.img, alt: p.cap, title: p.cap, text: `${p.by} · ${p.ship}` }))
+  };
+  let lbIndex = 0, lbOpener = null, lbLen = 0;
+  const lbSlides = () => [...lbTrack.children];
+  function setCount() {
+    bind('lb-count').textContent = `${lbIndex + 1} of ${lbLen}`;
+    lbSlides().forEach((s, k) => s.setAttribute('aria-hidden', String(k !== lbIndex)));
+    $('[data-action="lb-prev"]').disabled = lbIndex === 0; $('[data-action="lb-next"]').disabled = lbIndex === lbLen - 1;
+  }
+  function lbTo(i, smooth = true) {
+    lbIndex = Math.max(0, Math.min(lbLen - 1, i)); const s = lbSlides()[lbIndex]; if (!s) return;
+    lbTrack.scrollTo({ left: s.offsetLeft - (lbTrack.clientWidth - s.clientWidth) / 2, behavior: smooth && !reduced() ? 'smooth' : 'auto' });
+    setCount();
+  }
+  let lbT;
+  lbTrack.addEventListener('scroll', () => { clearTimeout(lbT); lbT = setTimeout(() => {
+    const mid = lbTrack.scrollLeft + lbTrack.clientWidth / 2; let best = 0, dist = Infinity;
+    lbSlides().forEach((s, k) => { const d = Math.abs(s.offsetLeft + s.clientWidth / 2 - mid); if (d < dist) { dist = d; best = k; } });
+    if (best !== lbIndex) { lbIndex = best; setCount(); }
+  }, 60); }, { passive: true });
+  function openLightbox(i, opener, set) {
+    lbOpener = opener; const items = LB_SETS[set](); lbLen = items.length;
+    lb.setAttribute('aria-label', set === 'ugc' ? 'Guest photos' : 'Why go');
+    lbTrack.innerHTML = items.map((s, k) => `<article class="lb-slide" aria-roledescription="slide" aria-label="${k + 1} of ${items.length}">
+        <div class="lb-img"><img src="${s.img}" alt="${s.alt}" decoding="async"${s.pos ? ` style="object-position:${s.pos}"` : ''}></div>
+        <div class="lb-body"><h3 class="lb-title">${s.title}</h3><p class="lb-text">${s.text}</p></div></article>`).join('');
+    lbIndex = i; setCount();
+    lb.classList.add('is-open'); lockPage(true);
+    requestAnimationFrame(() => { lbTo(i, false); $('[data-action="close-lightbox"]').focus(); });
+  }
+  function closeLightbox() { lb.classList.remove('is-open'); if (!state.sheet) lockPage(false); lbOpener && lbOpener.focus({ preventScroll: true }); }
+  lb.addEventListener('click', (e) => { if (!e.target.closest('.lb-slide, button')) closeLightbox(); });
+
+  /* ======================= Reviews ======================= */
+  const starRow = (n, cls = '') => `<span class="stars ${cls}">${Array.from({ length: 5 }, (_, k) => `<svg viewBox="0 0 24 24" style="opacity:${k < n ? 1 : 0.25}"><use href="#i-star"/></svg>`).join('')}</span>`;
+  const fullRow = () => `<span class="stars">${'<svg viewBox="0 0 24 24"><use href="#i-star"/></svg>'.repeat(5)}</span>`;
+  bind('rating-stars').innerHTML = `<span class="stars-frac" role="img" aria-label="Rated 4.8 out of 5">${fullRow()}<span class="stars" style="width:96%">${'<svg viewBox="0 0 24 24"><use href="#i-star"/></svg>'.repeat(5)}</span></span>`;
+  const initials = (n) => n.split(/\s+/).map(w => w[0]).join('').replace('.', '').slice(0, 2).toUpperCase();
+  bind('story-photos').innerHTML = [4, 0].map((i, k) => { const p = UGC[i];
+    return `<button class="ugc-photo" type="button" data-action="ugc" data-i="${i}" aria-haspopup="dialog" aria-label="${k === 1 ? `See all ${UGC.length} guest photos` : `Guest photo by ${p.by}: ${p.cap}`}"><img src="${p.img}" alt="" loading="lazy" decoding="async">${k === 1 ? `<span class="ugc-photo__more" aria-hidden="true">+${UGC.length - 1} photos</span>` : `<span class="ugc-photo__by" aria-hidden="true">${p.by}</span>`}</button>`; }).join('');
+  const topicMatch = (r) => state.topic === 'All' || (state.topic === '4★ and below' ? r.stars <= 4 : r.tags.includes(state.topic));
+  function renderStories() {
+    bind('filters').innerHTML = TOPICS.map(t => `<button type="button" data-action="topic" data-t="${t}" aria-pressed="${state.topic === t}">${t}</button>`).join('');
+    const list = REVIEWS.filter(topicMatch), shown = state.reviewsAll ? list : list.slice(0, 3);
+    bind('review-count').innerHTML = `Showing ${shown.length} of ${plural(list.length, 'sample review')} · most helpful first`;
+    bind('reviews').innerHTML = shown.map(r => { const i = REVIEWS.indexOf(r), on = !!state.helpful[i];
+      return `<li class="review">
+        <div class="review__who"><span class="avatar" aria-hidden="true">${initials(r.name)}</span><div><div class="review__name">${r.name}</div><div class="review__meta">${r.meta}</div></div></div>
+        <span role="img" aria-label="${r.stars} out of 5 stars">${starRow(r.stars, 'stars--sm')}</span>
+        <p class="review__text">${r.text}</p>
+        ${r.photos.length ? `<div class="review__photos">${r.photos.map(p => `<button class="ugc-photo" type="button" data-action="ugc" data-i="${p}" aria-haspopup="dialog" aria-label="Photo from ${r.name}: ${UGC[p].cap}"><img src="${UGC[p].img}" alt="" loading="lazy" decoding="async"></button>`).join('')}</div>` : ''}
+        <div class="review__foot">${r.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+          <button class="helpful" type="button" data-action="helpful" data-i="${i}" aria-pressed="${on}">${ic(on ? 'check' : 'thumb')}Helpful · ${r.helpful + (on ? 1 : 0)}</button></div>
+      </li>`; }).join('');
+    bind('reviews-more').innerHTML = !state.reviewsAll && list.length > 3 ? `<button class="btn btn--ghost" type="button" data-action="more-reviews">Show ${list.length - 3} more</button>` : '';
+  }
+  renderStories();
+
+  /* ======================= Shared booking components ======================= */
+  // One departure control for page, card and sheet: same marks, same words, same states.
+  function slotsHTML(ctx) {
+    const list = depList(), sel = cur(), selWait = state.wait && state.wait.dep === state.dep;
+    const rows = list.map((d, i) => {
+      const on = i === state.dep, full = d.status === 'soldout', onWait = state.wait && state.wait.dep === i;
+      const status = onWait ? `${ic('check')}On list` : d.status === 'waitlist' ? `${ic('clock')}Waitlist` : d.status === 'few' ? `${d.spots} left` : d.status === 'available' ? 'Available' : 'Full';
+      return `<div class="slot" role="radio" aria-checked="${on}"${full ? ' aria-disabled="true"' : ''} tabindex="${on ? 0 : -1}" data-i="${i}" data-ctx="${ctx}" data-s="${d.status}">
+        <span class="slot__time">${d.time}</span><span class="slot__status">${status}</span><span class="slot__mark" aria-hidden="true">${ic('check')}</span></div>`;
+    }).join('');
+    const note = sel.status === 'waitlist' && !selWait ? `<p class="slot-note">${ic('clock')}<span>The waitlist is free to join. You’re only charged if a spot opens and you accept it.</span></p>` : '';
+    const notify = list.map((d, i) => [d, i]).filter(([d]) => d.status === 'soldout').map(([d, i]) => { const on = !!state.notify[i];
+      return `<button class="chip-btn" type="button" data-action="notify" data-i="${i}" aria-pressed="${on}">${ic(on ? 'check' : 'bell')}${on ? `We’ll tell you if ${d.time} opens` : `Notify me if ${d.time} opens`}</button>`; }).join('');
+    return `<div class="times-label"><b id="slots-${ctx}">Departures</b><span>Same price at every time</span></div>
+      <div class="slots" role="radiogroup" aria-labelledby="slots-${ctx}">${rows}</div>${note}${notify ? `<div class="notify">${notify}</div>` : ''}`;
+  }
+  function guestsRow(ctx) {
+    const d = cur(), max = maxGuests(d);
+    const sub = bookable(d) && d.spots < MAX_GUESTS ? `Only ${d.spots} spots left at ${d.time}` : `Up to ${MAX_GUESTS} per booking`;
+    return `<div class="row"><div class="row__label"><b id="g-${ctx}">Guests</b><span>${sub}</span></div>
+      <div class="stepper" role="group" aria-labelledby="g-${ctx}">
+        <button type="button" data-action="guests" data-d="-1" data-ctx="${ctx}" aria-label="Remove a guest" ${state.guests <= 1 ? 'disabled' : ''}>${ic('minus')}</button>
+        <output aria-live="polite" aria-label="${plural(state.guests, 'guest')}">${state.guests}</output>
+        <button type="button" data-action="guests" data-d="1" data-ctx="${ctx}" aria-label="Add a guest" ${state.guests >= max ? 'disabled' : ''}>${ic('plus')}</button>
+      </div></div>`;
+  }
+  const creditRule = () => state.credits ? `${plural(state.credits, 'credit')} of ${money(CREDIT_VALUE)} · one per guest` : '';
+  function totalsHTML() {
+    const d = cur(), t = totals(), wait = d.status === 'waitlist';
+    const note = t.used ? `${money(t.sub)} less ${t.used} × ${money(CREDIT_VALUE)} credit${t.used > 1 ? 's' : ''}` : `${state.guests} × ${money(PRICE)}`;
+    return `<div class="sum" aria-live="polite"><div class="sum__row"><span>${wait ? 'If a spot opens' : 'Total'} · ${plural(state.guests, 'guest')}</span><b>${money(t.total)}</b></div><p class="sum__note">${note}</p></div>`;
+  }
+  // Primary action for the current selection. Same label in the bar, the card and the closing card.
+  function primary() {
+    const d = cur();
+    if (state.booking) return { label: 'View booking', action: 'manage-booking' };
+    if (state.wait && state.wait.dep === state.dep) return { label: 'Waitlist details', short: 'Details', action: 'manage-wait', ghost: true };
+    if (d.status === 'waitlist') return { label: 'Join waitlist', action: 'reserve' };
+    return { label: 'Reserve', action: 'reserve' };
+  }
+
+  /* ======================= Render ======================= */
+  // Hero chip: the one live status worth seeing before scrolling
+  function renderHero() {
+    const chip = bind('status-chip'), txt = bind('status-text'), b = state.booking, w = state.wait;
+    const list = depList(), few = list.find(x => x.status === 'few');
+    if (b) { chip.dataset.tone = 'ok'; txt.textContent = `Booked · ${DEPS[b.dep].time} · ${plural(b.guests, 'guest')}`; return; }
+    if (w) { chip.dataset.tone = 'calm'; txt.textContent = `On the waitlist for ${DEPS[w.dep].time}`; return; }
+    if (few) { chip.dataset.tone = 'warn'; txt.textContent = `${few.spots} spots left at ${few.time}`; return; }
+    const open = list.filter(bookable).length;
+    chip.dataset.tone = open ? 'ok' : 'calm'; txt.textContent = open ? `${plural(open, 'departure')} with space` : 'Waitlist open';
+  }
+
+  function renderTimesSection() {
+    const el = bind('times-body'), b = state.booking;
+    if (b) { const bd = DEPS[b.dep];
+      el.innerHTML = `<div class="notice">${ic('check')}<span><b>You’re booked for ${bd.time}</b> · ${plural(b.guests, 'guest')}, meet ${fmt(bd.min - 20)} at ${MEET}. ${money(b.total)} charged to ${VOYAGE.stateroom}. <button class="link" type="button" data-action="manage-booking" aria-haspopup="dialog">View booking</button></span></div>`;
+      return; }
+    const onWait = state.wait && state.wait.dep === state.dep;
+    el.innerHTML = `${slotsHTML('page')}${onWait ? `<div style="margin-top:12px">${waitNotice()}</div>` : ''}
+      ${state.credits ? `<div class="notice" style="margin-top:16px">${ic('star')}<span><b>You have ${plural(state.credits, 'excursion credit')} of ${money(CREDIT_VALUE)}.</b> One per guest, applied when you reserve. Unused credits expire at the end of the voyage.</span></div>` : ''}`;
+  }
+
+  function renderBar() {
+    const d = cur(), p = primary(), b = state.booking;
+    let l1, l2;
+    if (b) { const bd = DEPS[b.dep]; l1 = `<span class="ok">You’re booked</span>`; l2 = `${VOYAGE.dateShort} · ${bd.time} · ${plural(b.guests, 'guest')}`; }
+    else if (state.wait && state.wait.dep === state.dep) { l1 = `On the waitlist`; l2 = `${d.time} · no charge yet`; }
+    else { l1 = `${money(PRICE)} <span class="bar__unit">per guest</span>`; l2 = `${VOYAGE.dateShort} · ${d.time} · <span class="${d.status === 'few' ? 'few' : ''}">${d.status === 'few' ? `${d.spots} left` : d.status === 'waitlist' ? 'Waitlist' : 'Available'}</span>`; }
+    bind('bar').innerHTML = `<div class="bar__summary"><span class="bar__line1">${l1}</span><span class="bar__line2">${l2}</span></div>
+      <button class="btn${p.ghost ? ' btn--ghost' : ''}" type="button" data-action="${p.action}" data-from="bar" aria-haspopup="dialog">${p.short || p.label}</button>`;
+  }
+
+  function renderCard() {
+    const p = primary(), b = state.booking;
+    let html = '';
+    if (b) {
+      const bd = DEPS[b.dep];
+      html += `<div><span class="ok" style="font-weight:700;color:var(--success-text)">You’re booked</span><div class="display card__price" style="margin-top:4px">${bd.time} · ${plural(b.guests, 'guest')}</div><div class="card__date">${VOYAGE.dateMed} · meet ${fmt(bd.min - 20)} at ${MEET}</div></div>
+        <div class="notice">${ic('card')}<span><b>${money(b.total)}</b> charged to ${VOYAGE.stateroom}${b.credit ? ` after ${money(b.credit)} in credits` : ''}.</span></div>
+        <button class="btn btn--block" type="button" data-action="manage-booking" aria-haspopup="dialog">View or cancel booking</button>
+        <button class="btn btn--ghost btn--block" type="button" data-action="calendar">${ic('cal')}Add to calendar</button>
+        <p class="fine">Free cancellation until ${deadline(bd)}</p>`;
+    } else {
+      const d = cur(), onWait = state.wait && state.wait.dep === state.dep;
+      html += `<div><div class="display card__price">${money(PRICE)} <span class="card__unit">per guest</span></div><div class="card__date">${VOYAGE.dateMed} · 5 hours</div></div>
+        <div>${slotsHTML('card')}</div>
+        ${onWait ? waitNotice() : `${guestsRow('card')}${totalsHTML()}`}
+        <div><button class="btn btn--block${p.ghost ? ' btn--ghost' : ''}" type="button" data-action="${p.action}" data-from="card" aria-haspopup="dialog">${onWait ? p.label : d.status === 'waitlist' ? `Join waitlist for ${d.time}` : `Reserve ${d.time}`}</button>
+        <p class="fine" style="margin-top:10px">${d.status === 'waitlist' ? 'No charge to join. You’ll review first.' : `Free cancellation until ${deadline(d)}`}</p></div>`;
+    }
+    bind('card').innerHTML = html;
+  }
+  const waitNotice = () => { const w = state.wait, d = DEPS[w.dep];
+    return `<div class="notice">${ic('clock')}<span><b>You’re on the waitlist for ${d.time}</b> (${plural(w.guests, 'guest')}). If a spot opens we’ll message you and hold it for ${HOLD_HOURS} hours. Nothing is charged unless you accept.</span></div>`; };
+
+  function renderTimeline() {
+    const d = state.booking ? DEPS[state.booking.dep] : cur();
+    bind('tl-head').textContent = state.booking ? `Your booked ${d.time} departure` : `Your ${d.time} departure`;
+    bind('timeline').innerHTML = TIMELINE.map(t => `<li class="tl"><span class="tl__time">${fmt(d.min + t.at)}</span><span class="tl__rail" aria-hidden="true"></span><span class="tl__what"><b>${t.what}</b><span>${t.note}</span></span></li>`).join('');
+  }
+
+  function renderPolicies() {
+    const d = state.booking ? DEPS[state.booking.dep] : cur();
+    const items = [
+      { k: 'cancel', icon: 'cal', title: 'Cancellation', sub: `Free until ${deadline(d)} (24 hours before)`, body: `<ul><li>Cancel free until 24 hours before departure. You’re refunded to your onboard account and any credits are returned.</li><li>Within 24 hours, cancellations are non-refundable.</li><li>If the operator cancels for weather, you’re refunded in full.</li></ul>` },
+      { k: 'board', icon: 'card', title: 'Boarding requirements', sub: `Meet 20 min early at ${MEET} · ship card and photo ID`, body: `<ul><li>Meet 20 minutes before departure at ${MEET}. Look for the Juneau Whale &amp; Glacier sign.</li><li>Every guest needs their ship card and a government photo ID.</li><li>Guests must be 18 or older and able to step on and off the boat unassisted.</li></ul>` },
+      { k: 'promise', icon: 'shield', title: 'Whale sighting promise', sub: 'Partial refund if no whale is seen', body: `<p>The operator guarantees a whale sighting. If none is seen, you receive a partial refund to your onboard account.</p>` }
+    ];
+    const was = $$('[data-bind="policies"] .reveal.is-open').map(r => r.id);
+    bind('policies').innerHTML = items.map(it => { const id = `acc-${it.k}`, open = was.includes(id);
+      return `<div class="acc"><button class="acc__head" type="button" data-action="reveal" data-target="${id}" aria-expanded="${open}" aria-controls="${id}">
+          ${ic(it.icon)}<span class="acc__titles"><span class="acc__title">${it.title}</span><span class="acc__sub">${it.sub}</span></span>${ic('down', 'icon chev')}</button>
+        <div class="reveal${open ? ' is-open' : ''}" id="${id}"><div><div class="acc__body">${it.body}</div></div></div></div>`; }).join('');
+  }
+
+  function renderClosing() {
+    const p = primary(), b = state.booking;
+    const copy = b ? ['Next stop: the humpbacks.', `Booked for ${VOYAGE.dateMed} at ${DEPS[b.dep].time}. Meet at ${MEET} by ${fmt(DEPS[b.dep].min - 20)}.`]
+      : ['Whales, ice and a waterfall. Back on board by dinner.', 'Some days in port stay with you forever. Make Juneau one of them.'];
+    bind('closing').innerHTML = `<h2 class="closing__title">${copy[0]}</h2><p class="closing__sub">${copy[1]}</p><span class="closing__cta" aria-hidden="true">${p.label}</span>
+      <button class="closing__hit" type="button" data-action="${p.action}" data-from="closing" aria-haspopup="dialog" aria-label="${p.label}"></button>`;
+  }
+
+  function render() {
+    normalizeDep();
+    renderHero(); renderTimesSection(); renderBar(); renderCard(); renderTimeline(); renderPolicies(); renderClosing();
+    bind('compact-ctx').textContent = `${VOYAGE.dateShort} · ${VOYAGE.day}`;
+    if (state.sheet === 'select') fillSheet('select');
+    $$('[data-action="proto-first"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.first)));
+    $$('[data-action="proto-credits"]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === state.credits)));
+    buildPills(); syncBar();
+  }
+
+  /* ======================= Sheet: select → review → result ======================= */
+  let sheetOpener = null;
+  const ctxRow = () => `<div class="ctx">${ic('ship')}<div><b>Whales &amp; Mendenhall Glacier Trail</b><span>${VOYAGE.dateMed} · ${VOYAGE.day}</span></div></div>`;
+  const check = (wait) => `<div class="confirm__mark${wait ? ' confirm__mark--wait' : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>`;
+  const waitSteps = (d, t) => `<ol class="steps">
+      <li><span><b>Join now, free.</b> Nothing is reserved or charged.</span></li>
+      <li><span><b>If ${plural(state.guests, 'spot')} open${state.guests === 1 ? 's' : ''},</b> we message you and hold ${state.guests === 1 ? 'it' : 'them'} for ${HOLD_HOURS} hours.</span></li>
+      <li><span><b>You decide.</b> Accept to reserve and ${money(t.total)} is charged to ${VOYAGE.stateroom}. Ignore it and the hold expires at no cost.</span></li></ol>`;
+  function fillSheet(kind) {
+    const title = bind('sheet-title'), body = bind('sheet-body'), foot = bind('sheet-foot');
+    const d = cur(), t = totals(), wait = d.status === 'waitlist';
+    foot.hidden = true; foot.innerHTML = '';
+    if (kind === 'select') {
+      title.textContent = 'Choose time and guests';
+      const onWait = state.wait && state.wait.dep === state.dep;
+      body.innerHTML = `<p class="step">Step 1 of 2</p>${ctxRow()}${slotsHTML('sheet')}${onWait ? `<div style="margin-top:12px">${waitNotice()}</div>` : `<div class="calc">${guestsRow('sheet')}${totalsHTML()}</div>`}`;
+      foot.hidden = false;
+      foot.innerHTML = onWait ? `<button class="btn btn--block btn--ghost" type="button" data-action="manage-wait">Waitlist details</button>`
+        : `<button class="btn btn--block" type="button" data-action="review">${wait ? `Review waitlist request` : `Review · ${plural(state.guests, 'guest')} · ${money(t.total)}`}</button>`;
+    }
+    if (kind === 'review') {
+      title.textContent = wait ? 'Join the waitlist' : 'Review and reserve';
+      const creditSmall = t.used ? `${money(CREDIT_VALUE)} each, one per guest${state.guests > t.used ? ` · covers ${t.used} of ${plural(state.guests, 'guest')}` : ` · ${t.used} of ${state.credits} used`}`
+        : state.credits ? `Not applied. Your ${plural(state.credits, 'credit')} stay${state.credits === 1 ? 's' : ''} available until the end of the voyage.` : '';
+      const replaces = state.wait && state.wait.dep !== state.dep && !wait ? `<div class="notice notice--warn" style="margin-top:14px">${ic('clock')}<span>Reserving replaces your waitlist request for ${DEPS[state.wait.dep].time}.</span></div>` : '';
+      body.innerHTML = `${state.flow === 2 ? '<p class="step">Step 2 of 2</p>' : ''}${ctxRow()}
+        <div class="rv">
+          <div class="rv__row"><span>Departure</span><span><b>${d.time}${wait ? ' · waitlist' : ''}</b><small>Meet ${fmt(d.min - 20)} at ${MEET}</small></span></div>
+          <div class="rv__row"><span>Guests</span><span><b>${plural(state.guests, 'guest')}</b><small>Ages 18+ · ship card and photo ID for each</small></span></div>
+          <div class="rv__row"><span>Price</span><span><b>${money(t.sub)}</b><small>${state.guests} × ${money(PRICE)} per guest</small></span></div>
+          ${state.credits ? `<div class="rv__row${t.used ? ' rv__row--credit' : ''}"><span>Credits</span><span class="rv__credit"><span><b>${t.used ? money(-t.credit) : '$0'}</b><small>${creditSmall}</small></span><button class="switch" type="button" role="switch" aria-checked="${state.useCredits}" aria-label="Use excursion credits" data-action="credits" data-ctx="sheet"></button></span></div>` : ''}
+          <div class="rv__row rv__row--total"><span>${wait ? 'If you accept a spot' : 'Total'}</span><span><b>${money(t.total)}</b><small>${wait ? `Charged to ${VOYAGE.stateroom} only if you accept` : `Charged to your onboard account, ${VOYAGE.stateroom}, when you reserve`}</small></span></div>
+        </div>
+        ${wait ? waitSteps(d, t) : `<div class="notice policy-box">${ic('cal')}<span><b>Free cancellation until ${deadline(d)}.</b> That’s 24 hours before departure; you’re refunded and credits are returned. After that it’s non-refundable.</span></div>`}
+        ${replaces}
+        <button class="link" type="button" data-action="select" style="margin-top:14px;padding:8px 0">Change time or guests</button>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block" type="button" data-action="confirm">${wait ? 'Join waitlist · no charge now' : t.total ? `Reserve and charge ${money(t.total)}` : 'Reserve · covered by credits'}</button>
+        <p class="fine">${wait ? 'Nothing is charged unless you accept a spot.' : `<b>Free cancellation until ${deadline(d)}</b>.`} Prototype: nothing is booked or charged.</p>`;
+    }
+    if (kind === 'done') {
+      const b = state.booking, bd = DEPS[b.dep];
+      title.textContent = 'Reserved';
+      body.innerHTML = `<div class="confirm">${check()}<h3 class="display confirm__title">You’re going whale watching</h3><p class="muted">It’s on your ${VOYAGE.day} plan. We’ll remind you the evening before.</p>
+        <div class="confirm__card"><b>${VOYAGE.dateMed} · ${bd.time}</b><span>Meet ${fmt(bd.min - 20)} at ${MEET}</span><span>${plural(b.guests, 'guest')} · ${money(b.total)} charged to ${VOYAGE.stateroom}${b.credit ? ` (${money(b.credit)} in credits applied)` : ''}</span><span>Free cancellation until ${deadline(bd)}</span></div></div>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block" type="button" data-action="close-sheet">Done</button><button class="btn btn--ghost btn--block" type="button" data-action="calendar">${ic('cal')}Add to calendar</button>`;
+    }
+    if (kind === 'waitlisted' || kind === 'wait') {
+      const w = state.wait, wd = DEPS[w.dep], wt = totals(wd, w.guests);
+      title.textContent = kind === 'waitlisted' ? 'On the waitlist' : 'Your waitlist request';
+      const alt = depList().findIndex(bookable);
+      body.innerHTML = `<div class="confirm">${check(true)}<h3 class="display confirm__title">You’re on the list for ${wd.time}</h3><p class="muted">${plural(w.guests, 'guest')} · ${VOYAGE.dateMed}. Nothing has been charged.</p></div>
+        <ol class="steps">
+          <li><span><b>We’ll message you</b> in the app if ${plural(w.guests, 'spot')} open${w.guests === 1 ? 's' : ''}.</span></li>
+          <li><span><b>We hold ${w.guests === 1 ? 'it' : 'them'} for ${HOLD_HOURS} hours.</b></span></li>
+          <li><span><b>Accept to reserve.</b> Only then is ${money(wt.total)} charged to ${VOYAGE.stateroom}.</span></li></ol>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block" type="button" data-action="close-sheet">Done</button>
+        ${alt >= 0 ? `<button class="btn btn--ghost btn--block" type="button" data-action="reserve-at" data-i="${alt}">Reserve ${DEPS[alt].time} instead</button>` : ''}
+        <button class="btn btn--danger btn--block" type="button" data-action="leave-wait">Leave waitlist</button>`;
+    }
+    if (kind === 'booking') {
+      const b = state.booking, bd = DEPS[b.dep];
+      title.textContent = 'Your booking';
+      body.innerHTML = `${ctxRow()}<div class="rv">
+          <div class="rv__row"><span>Departure</span><span><b>${bd.time}</b><small>Meet ${fmt(bd.min - 20)} at ${MEET}</small></span></div>
+          <div class="rv__row"><span>Guests</span><span><b>${plural(b.guests, 'guest')}</b></span></div>
+          <div class="rv__row rv__row--total"><span>Charged</span><span><b>${money(b.total)}</b><small>To ${VOYAGE.stateroom}${b.credit ? ` · ${money(b.credit)} in credits applied` : ''}</small></span></div></div>
+        <div class="notice policy-box">${ic('cal')}<span><b>Free cancellation until ${deadline(bd)}.</b> After that it’s non-refundable.</span></div>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block" type="button" data-action="calendar">${ic('cal')}Add to calendar</button><button class="btn btn--danger btn--block" type="button" data-action="cancel-ask">Cancel booking</button>`;
+    }
+    if (kind === 'cancel') {
+      const b = state.booking;
+      title.textContent = 'Cancel booking?';
+      body.innerHTML = `<div class="confirm"><h3 class="display confirm__title">Cancel your ${DEPS[b.dep].time} booking?</h3>
+        <p class="muted">You’re within the free cancellation window. ${money(b.total)} goes back to your onboard account${b.used ? ` and ${plural(b.used, 'credit')} ${b.used === 1 ? 'is' : 'are'} returned` : ''}.</p></div>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block btn--solid-danger" type="button" data-action="cancel-booking">Yes, cancel booking</button><button class="btn btn--ghost btn--block" type="button" data-action="manage-booking">Keep booking</button>`;
+    }
+  }
+  function lockPage(on) {
+    document.documentElement.classList.toggle('is-locked', on);
+    ['#page', '.booking-bar', '#compact'].forEach(s => { const el = $(s); if (el) el.inert = on; });
+  }
+  function openSheet(kind, opener) {
+    if (!state.sheet) sheetOpener = opener || document.activeElement;
+    state.sheet = kind; fillSheet(kind);
+    $('#sheet-layer').classList.add('is-open'); lockPage(true);
+    bind('sheet-body').scrollTop = 0;
+    requestAnimationFrame(() => $('.sheet__close').focus());
+  }
+  function swapSheet(kind) { state.sheet = kind; fillSheet(kind); bind('sheet-body').scrollTop = 0; bind('sheet-title').focus(); }
+  function closeSheet() {
+    state.sheet = null; $('#sheet-layer').classList.remove('is-open');
+    if (!lb.classList.contains('is-open')) lockPage(false);
+    const back = sheetOpener && document.contains(sheetOpener) ? sheetOpener : $(`[data-action="${primary().action}"]`, deskMQ.matches ? bind('card') : bind('bar'));
+    back && back.focus({ preventScroll: true });
+    sheetOpener = null;
+  }
+
+  let toastT;
+  function toast(msg) { const t = bind('toast'); t.textContent = msg; t.classList.add('is-on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('is-on'), 2800); }
+  const say = (msg) => { bind('live').textContent = ''; setTimeout(() => bind('live').textContent = msg, 30); };
+
+  function downloadICS() {
+    const b = state.booking; if (!b) return; const d = DEPS[b.dep];
+    const t = (m) => `${VOYAGE.ymd}T${String(Math.floor(m / 60)).padStart(2, '0')}${String(m % 60).padStart(2, '0')}00`;
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Shore Ex prototype//EN', 'BEGIN:VEVENT', `UID:whales-${b.dep}-${VOYAGE.ymd}@prototype`, 'DTSTAMP:20261005T000000Z',
+      `DTSTART;TZID=America/Juneau:${t(d.min - 20)}`, `DTEND;TZID=America/Juneau:${t(d.min + 300)}`, 'SUMMARY:Whales & Mendenhall Glacier Trail (sample)',
+      'LOCATION:Pier 2\\, Gangway 4\\, Juneau', `DESCRIPTION:Meet ${fmt(d.min - 20)}. ${plural(b.guests, 'guest')}. Prototype booking - not real.`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'whales-mendenhall-2026-12-12.ics';
+    document.body.appendChild(a); a.click(); a.remove(); toast('Calendar file downloaded');
+  }
+
+  /* ======================= Expand in place ======================= */
+  function toggleReveal(btn) {
+    const panel = document.getElementById(btn.dataset.target), open = btn.getAttribute('aria-expanded') !== 'true';
+    panel.classList.toggle('is-open', open);
+    $$(`[aria-controls="${btn.dataset.target}"]`).forEach(b => {
+      b.setAttribute('aria-expanded', String(open));
+      if (b.dataset.open) $('span', b).textContent = open ? b.dataset.open : b.dataset.closed;
+    });
+  }
+
+  /* ======================= Sticky jump nav ======================= */
+  const jump = $('#jump'), track = $('#jump-track'), compact = $('#compact'), compactBack = $('.compact-header__back', compact);
+  const PILLS = [['day', 'Your day'], ['expect', 'What to expect'], ['times', 'Price & times'], ['reviews', 'Reviews'], ['policies', 'Good to know']];
+  const visibleSections = () => $$('[data-section]').filter(s => s.offsetParent !== null);
+  let spyLock = 0, activeId = 'day';
+  function buildPills() {
+    const ids = visibleSections().map(s => s.id);
+    const want = PILLS.filter(([id]) => ids.includes(id));
+    if (track.dataset.ids === want.map(p => p[0]).join()) return;
+    track.dataset.ids = want.map(p => p[0]).join();
+    track.innerHTML = want.map(([id, label]) => `<a class="jump__pill" href="#${id}" data-action="goto" data-target="${id}" aria-current="${id === activeId}">${label}</a>`).join('');
+    updateFade();
+  }
+  function updateFade() { jump.classList.toggle('has-more', track.scrollWidth - track.clientWidth - track.scrollLeft > 4); }
+  track.addEventListener('scroll', updateFade, { passive: true });
+  function setActive(id) {
+    activeId = id;
+    $$('.jump__pill', track).forEach(p => {
+      const on = p.dataset.target === id; p.setAttribute('aria-current', String(on));
+      if (on) { const l = p.offsetLeft - 20, r = p.offsetLeft + p.offsetWidth + 20; if (l < track.scrollLeft || r > track.scrollLeft + track.clientWidth) track.scrollTo({ left: l, behavior: reduced() ? 'auto' : 'smooth' }); }
+    });
+  }
+  function goTo(id, focus) {
+    const el = document.getElementById(id); if (!el) return;
+    const navH = compact.offsetHeight + jump.offsetHeight;
+    // Compact header is hidden until the nav pins, so always reserve its height
+    const top = el.getBoundingClientRect().top + scrollY - (deskMQ.matches ? 60 : compact.offsetHeight || 48) - jump.offsetHeight + 1;
+    if (el.dataset.section !== undefined) { setActive(id); spyLock = Date.now() + 900; }
+    window.scrollTo({ top: Math.max(0, top), behavior: reduced() ? 'auto' : 'smooth' });
+    if (focus) { const h = $('h2', el); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } }
+  }
+  function onScroll() {
+    const ch = compact.offsetHeight;
+    const stuck = jump.getBoundingClientRect().top <= ch + 0.5 && scrollY > 0;
+    jump.classList.toggle('is-stuck', stuck); compact.classList.toggle('is-visible', stuck);
+    compact.setAttribute('aria-hidden', String(!stuck)); compactBack.tabIndex = stuck ? 0 : -1;
+    if (Date.now() < spyLock) return;
+    const line = ch + jump.offsetHeight + 24, vis = visibleSections();
+    let active = vis[0] ? vis[0].id : 'day';
+    for (const s of vis) if (s.getBoundingClientRect().top <= line) active = s.id;
+    if (active !== activeId) setActive(active);
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('scrollend', () => { spyLock = 0; onScroll(); });
+
+  /* ======================= Events ======================= */
+  function pickDep(i, ctx) {
+    const list = depList(), d = list[i]; if (!d || d.status === 'soldout') return;
+    const changed = i !== state.dep, before = state.guests;
+    state.dep = i; state.guests = Math.min(state.guests, maxGuests(d));
+    render();
+    if (changed) {
+      say(`${d.time} selected. ${d.status === 'waitlist' ? 'Waitlist. Free to join; you are only charged if a spot opens and you accept it.' : statusShort(d) + '.'}${state.guests < before ? ` Guests reduced to ${state.guests}.` : ''}`);
+      if (state.guests < before) toast(`Only ${d.spots} spots at ${d.time}: guests set to ${state.guests}`);
+      $$('.tl, .strip').forEach(t => { t.classList.remove('is-flash'); void t.offsetWidth; t.classList.add('is-flash'); });
+    }
+    const root = ctx === 'sheet' ? bind('sheet-body') : ctx === 'card' ? bind('card') : bind('times-body');
+    const next = $(`.slot[data-i="${i}"]`, root); next && next.focus({ preventScroll: true });
+  }
+  function startReserve(from, el) {
+    normalizeDep();
+    if (from === 'card') { state.flow = 1; openSheet('review', el); }
+    else { state.flow = 2; openSheet('select', el); }
+  }
+
+  document.addEventListener('click', (e) => {
+    const slot = e.target.closest('.slot');
+    if (slot) { pickDep(+slot.dataset.i, slot.dataset.ctx); return; }
+    const el = e.target.closest('[data-action]'); if (!el) return;
+    const a = el.dataset.action;
+    if (el.tagName === 'A') e.preventDefault();
+    switch (a) {
+      case 'goto': goTo(el.dataset.target, el.closest('.hero__facts')); break;
+      case 'goto-times': if (deskMQ.matches) { const s = $('.slot[tabindex="0"]', bind('card')); s && s.focus(); } else goTo('times', true); break;
+      case 'reveal': toggleReveal(el); break;
+      case 'reserve': startReserve(el.dataset.from, el); break;
+      case 'select': state.flow = 2; state.sheet ? swapSheet('select') : openSheet('select', el); break;
+      case 'reserve-at': state.dep = +el.dataset.i; normalizeDep(); render(); state.flow = 2; state.sheet ? swapSheet('select') : openSheet('select', el); break;
+      case 'review': swapSheet('review'); break;
+      case 'guests': {
+        const d = cur(), before = state.guests; state.guests = Math.max(1, Math.min(maxGuests(d), state.guests + +el.dataset.d));
+        render(); if (state.sheet === 'review') fillSheet('review');
+        say(state.guests === before ? `Maximum ${maxGuests(d)} guests at ${d.time}.` : `${plural(state.guests, 'guest')}. Total ${money(totals().total)}.`);
+        const root = el.dataset.ctx === 'sheet' ? bind('sheet-body') : bind('card');
+        const f = $(`.stepper [data-d="${el.dataset.d}"]`, root); (f && !f.disabled ? f : $('.stepper output', root))?.focus();
+        break;
+      }
+      case 'credits': {
+        state.useCredits = !state.useCredits; render(); if (state.sheet === 'review') fillSheet('review');
+        say(state.useCredits ? `Credits applied. Total ${money(totals().total)}.` : `Credits not applied. Total ${money(totals().total)}.`);
+        const root = el.dataset.ctx === 'sheet' ? bind('sheet-body') : bind('card'); $('.switch', root)?.focus();
+        break;
+      }
+      case 'notify': { const i = +el.dataset.i, ctx = el.closest('.booking-card') ? 'card' : el.closest('.sheet') ? 'sheet' : 'page'; state.notify[i] = !state.notify[i]; render();
+        toast(state.notify[i] ? `We’ll message you if ${DEPS[i].time} opens up` : 'Notification turned off');
+        const root = ctx === 'sheet' ? bind('sheet-body') : ctx === 'card' ? bind('card') : bind('times-body'); $(`[data-action="notify"][data-i="${i}"]`, root)?.focus(); break; }
+      case 'confirm': {
+        el.disabled = true; const wait = cur().status === 'waitlist'; el.textContent = wait ? 'Joining…' : 'Reserving…';
+        setTimeout(() => {
+          if (wait) { state.wait = { dep: state.dep, guests: state.guests }; render(); swapSheet('waitlisted'); say('You are on the waitlist. Nothing has been charged.'); }
+          else { const t = totals(); state.booking = { dep: state.dep, guests: state.guests, ...t }; state.credits -= t.used; if (state.wait) state.wait = null; render(); swapSheet('done'); say('Reserved.'); }
+        }, reduced() ? 0 : 700);
+        break;
+      }
+      case 'manage-booking': state.sheet ? swapSheet('booking') : openSheet('booking', el); break;
+      case 'manage-wait': state.sheet ? swapSheet('wait') : openSheet('wait', el); break;
+      case 'leave-wait': state.wait = null; closeSheet(); render(); toast('You left the waitlist'); break;
+      case 'cancel-ask': swapSheet('cancel'); break;
+      case 'cancel-booking': { const b = state.booking; state.credits += b.used; state.dep = b.dep; state.booking = null; closeSheet(); render(); toast(`Booking cancelled · ${money(b.total)} refunded to your onboard account`); break; }
+      case 'calendar': downloadICS(); break;
+      case 'close-sheet': closeSheet(); break;
+      case 'back': if (history.length > 1 && document.referrer.startsWith(location.origin)) history.back(); else toast('In the app, this returns to Day 4 · Juneau'); break;
+      case 'gal-go': showSlide(+el.dataset.i); schedule(); break;
+      case 'slideshow': setPaused(!userPaused); break;
+      case 'lightbox': openLightbox(+el.dataset.i || 0, el, el.dataset.set || 'moments'); break;
+      case 'ugc': openLightbox(+el.dataset.i, el, 'ugc'); break;
+      case 'close-lightbox': closeLightbox(); break;
+      case 'lb-prev': lbTo(lbIndex - 1); break;
+      case 'lb-next': lbTo(lbIndex + 1); break;
+      case 'topic': state.topic = el.dataset.t; state.reviewsAll = false; renderStories(); $(`[data-action="topic"][data-t="${state.topic}"]`).focus(); break;
+      case 'more-reviews': { state.reviewsAll = true; renderStories(); const it = $$('.review', bind('reviews'))[3]; if (it) { it.tabIndex = -1; it.focus({ preventScroll: true }); } break; }
+      case 'helpful': { const i = +el.dataset.i; state.helpful[i] = !state.helpful[i]; renderStories(); $(`[data-action="helpful"][data-i="${i}"]`)?.focus(); break; }
+      case 'proto-toggle': { const p = $('#proto-panel'); p.hidden = !p.hidden; el.setAttribute('aria-expanded', String(!p.hidden)); break; }
+      case 'proto-first': state.first = el.dataset.v; render(); break;
+      case 'proto-credits': if (!state.booking) { state.credits = +el.dataset.v; render(); } else toast('Cancel the booking first'); break;
+      case 'proto-reset': state.booking = null; state.wait = null; state.notify = {}; state.credits = 2; state.useCredits = true; state.dep = defaultDep(); state.guests = 2; render(); toast('Prototype reset'); break;
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { if (lb.classList.contains('is-open')) closeLightbox(); else if (state.sheet) closeSheet(); return; }
+    if (lb.classList.contains('is-open') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { e.preventDefault(); lbTo(lbIndex + (e.key === 'ArrowRight' ? 1 : -1)); return; }
+    // Keep focus inside an open dialog
+    if (e.key === 'Tab') {
+      const box = lb.classList.contains('is-open') ? lb : state.sheet ? $('.sheet') : null;
+      if (box) { const f = $$('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])', box).filter(x => x.offsetParent !== null);
+        if (f.length) { const first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } } }
+    }
+    const slot = e.target.closest('.slot');
+    if (slot && ['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].includes(e.key)) {
+      e.preventDefault();
+      const dir = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : -1, list = depList();
+      let i = state.dep; for (let k = 0; k < list.length; k++) { i = (i + dir + list.length) % list.length; if (list[i].status !== 'soldout') break; }
+      pickDep(i, slot.dataset.ctx);
+    }
+    if (slot && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); pickDep(+slot.dataset.i, slot.dataset.ctx); }
+  });
+
+  /* ======================= Prototype controls ======================= */
+  bind('proto-first').innerHTML = [['available', 'Available'], ['few', 'Few left'], ['waitlist', 'Waitlist'], ['soldout', 'Full']].map(([v, l]) => `<button type="button" data-action="proto-first" data-v="${v}">${l}</button>`).join('');
+  bind('proto-credits').innerHTML = [[2, '2 credits'], [1, '1 credit'], [0, 'None']].map(([v, l]) => `<button type="button" data-action="proto-credits" data-v="${v}">${l}</button>`).join('');
+
+  // Keep page padding and toasts clear of the booking bar at any text size
+  const barEl = $('.booking-bar');
+  function syncBar() { document.documentElement.style.setProperty('--bar-h', (getComputedStyle(barEl).display === 'none' ? 0 : barEl.offsetHeight) + 'px'); }
+  new ResizeObserver(syncBar).observe(barEl);
+  addEventListener('resize', () => { syncBar(); buildPills(); updateFade(); });
+  deskMQ.addEventListener('change', () => { track.dataset.ids = ''; buildPills(); });
+
+  /* ======================= Boot ======================= */
+  state.dep = defaultDep();
+  render();
+  onScroll();
+})();
+</script>
+</body>
+</html>
