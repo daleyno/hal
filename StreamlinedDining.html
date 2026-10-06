@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4B7D9C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Streamlined Dining">
+<link rel="manifest" href="StreamlinedDining.webmanifest">
+<title>Streamlined Dining</title>
+<!--
+  Specialty dining detail — Streamlined Dining
+  Foundation: StreamlinedShoreEx.html (layout, components, booking flow). Content: Dining.html.
+
+  What changed from Streamlined Shore Ex
+    · Navy band key tiles: Lunch menu, Dinner menu, Dress code (Smart casual), Reservations (Recommended).
+    · "At the table" replaces "Why go": same lead + pair photo set, three reasons, "Read about the restaurant".
+    · Times are grouped by meal (Lunch $19 · Dinner $59) using the same .slot radio rows on page, card and sheet.
+    · One dining credit covers one guest's cover charge. 20% service charge is added onboard.
+    · Booked: the table is the pass in the navy band, plus a short "Before you dine" checklist.
+    · Trip variations: Pre-cruise and Onboard reserve; No cruise is browse-only with "Ships featuring".
+      Onboard shows an Open / Closed tag in the hero (content never changes with it).
+    · Dropped: timeline, ticket/QR, suitability, guest stories, closing Delft card.
+    · Voyage date: Day 5 · At sea, Sunday, December 13, 2026 (Day 4 Juneau is Sat, Dec 12).
+
+  Breakpoints: < 640 phone · ≥ 640 tablet (centred 784 column) · ≥ 1024 desktop (2 columns + sticky booking card)
+  All content, prices, availability and credits are sample data. Nothing is booked or charged.
+-->
+<style>
+:root {
+  --hal-blue: #022658; --hal-blue-dark: #021E46; --primary-hover: #1C4379;
+  --mes-orange: #E46C24; --orange-text: #A34C17;
+  --dutch-creme: #F8EDDC;
+  --blue-05: #E6E9EE; --blue-02: #F1F4F8; --blue-1: #CCD4DE; --blue-3: #677D9B;
+  --white: #FFFFFF; --neutral-5: #F2F3F4; --neutral-10: #E6E7E9; --neutral-20: #CDCFD2;
+  --neutral-40: #9A9FA5; --neutral-60: #686F79; --neutral-70: #4F5763; --neutral-90: #1D2736;
+  --alert: #B00000; --success: #179F32; --success-text: #12722A; --success-soft: #F2FFF5;
+  --border: #E4E4EB;
+  --on-navy: rgba(255,255,255,0.78); --on-navy-rule: rgba(255,255,255,0.16);
+
+  --radius-m: 14px; --radius-l: 20px; --radius-xl: 360px;
+  --shadow-card: 0 6px 16px 0 rgba(0,0,0,0.12);
+  --shadow-bar: 0 -6px 18px rgba(3,15,31,0.06);
+  --focus: 0 0 0 3px rgba(25,121,255,0.55);
+
+  --font-display: "HAL Headline Display", Georgia, "Times New Roman", serif;
+  --font-body: "HAL Body", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --fast: 160ms; --base: 240ms; --slow: 360ms;
+
+  --page-pad: 20px; --content-max: 100%;
+  --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --compact-h: calc(48px + var(--safe-top));
+  --jump-h: 56px;
+  --bar-h: 84px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+html.is-locked, html.is-locked body { overflow: hidden; }
+body { margin: 0; background: var(--white); color: var(--neutral-90); font-family: var(--font-body); font-size: 1rem; line-height: 1.55; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: inherit; }
+a { color: inherit; }
+:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 8px; }
+p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.container { width: 100%; max-width: var(--content-max); margin: 0 auto; padding: 0 var(--page-pad); }
+.icon { width: 1.5rem; height: 1.5rem; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange-text); }
+.display { font-family: var(--font-display); font-weight: 400; color: var(--hal-blue); letter-spacing: -0.01em; line-height: 1.15; }
+.link { font-weight: 700; color: var(--hal-blue); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.link:hover { color: #1461CC; }
+.muted { color: var(--neutral-70); }
+.ok { display: inline-flex; align-items: center; gap: 6px; }
+.ok::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex: none; }
+.ok--now::before { background: var(--mes-orange); }
+
+/* ================= Hero (ShoreEx slideshow, accurate photos only) ================= */
+/* Slow fade + pan/zoom between photos; the bottom resolves to solid navy so the title and key facts sit on one surface */
+.hero { position: relative; height: calc(clamp(430px, 60svh, 540px) + var(--safe-top)); background: var(--hal-blue-dark); color: var(--white); overflow: hidden; }
+.gallery { position: absolute; inset: 0; overflow: hidden; }
+.slide { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity 1800ms var(--ease); overflow: hidden; }
+.slide.is-active { opacity: 1; }
+.slide img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, center); transform: scale(var(--s0, 1.06)) translate(var(--fx, 0), var(--fy, 0)); transform-origin: var(--ox, 50%) var(--oy, 50%); will-change: transform; }
+.slide.is-kb img { animation: kenburns 9000ms linear forwards; }
+@keyframes kenburns { from { transform: scale(var(--s0, 1.06)) translate(var(--fx, 0), var(--fy, 0)); } to { transform: scale(var(--s1, 1.18)) translate(var(--tx, 0), var(--ty, 0)); } }
+.hero__blur { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; pointer-events: none; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 45%, #000 85%); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 45%, #000 85%); }
+.hero__scrim { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(rgba(3,15,31,0.42) 0, rgba(3,15,31,0) 130px), linear-gradient(rgba(2,30,70,0) 40%, rgba(2,30,70,0.5) 62%, rgba(2,30,70,0.9) 84%, var(--hal-blue-dark) 100%); }
+.hero__top { position: absolute; z-index: 1; left: 0; right: 0; top: calc(var(--safe-top) + 12px); padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
+.round-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.94); color: var(--hal-blue); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(3,15,31,0.18); }
+.round-btn .icon { width: 1.375rem; height: 1.375rem; stroke-width: 2; }
+.hero__ctrl { display: flex; align-items: center; padding: 0 4px; border-radius: var(--radius-xl); background: rgba(3,15,31,0.42); }
+.dots { display: flex; }
+.dots button { width: 26px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.dots button::before { content: ""; width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.55); transition: width var(--base) var(--ease), background var(--base) var(--ease); }
+.dots button[aria-current="true"]::before { width: 18px; background: var(--white); }
+.hero__pause { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: rgba(255,255,255,0.85); }
+.hero__pause .icon { width: 0.875rem; height: 0.875rem; stroke-width: 2.4; }
+.hero__body { position: absolute; left: 0; right: 0; bottom: 0; padding-bottom: 20px; }
+.hero__body .container { display: flex; flex-direction: column; gap: 8px; text-shadow: 0 1px 12px rgba(2,30,70,0.5); }
+.hero__eyebrow { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.9); }
+.hero__title { font-family: var(--font-display); font-weight: 400; font-size: 2rem; line-height: 1.1; letter-spacing: -0.01em; text-wrap: balance; }
+.hero__lead { font-size: clamp(0.9375rem, 4.4vw, 1.0625rem); line-height: 1.45; color: rgba(255,255,255,0.9); max-width: 34rem; text-wrap: pretty; }
+
+/* ================= Navy band: key-fact tiles, then Why go ================= */
+.band { position: relative; isolation: isolate; color: var(--white); clip-path: inset(-1px -100vmax 0); }
+.band::before { content: ""; position: absolute; top: -1px; bottom: 0; left: -100vmax; right: -100vmax; background: var(--hal-blue-dark); z-index: -1; }
+/* Tiles: a quiet lift off the navy (white at 7%). Strict format: label, value, note — one line each.
+   Tiles with more detail are buttons that open a bottom drawer; the underlined value marks them as tappable. */
+.keytiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 4px 0 36px; }
+.keytiles > li { display: flex; min-width: 0; }
+.keytile { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 16px; border-radius: var(--radius-m); background: rgba(255,255,255,0.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); min-width: 0; text-align: left; color: inherit; }
+button.keytile { transition: background var(--fast) var(--ease); }
+button.keytile:hover { background: rgba(255,255,255,0.11); }
+.keytile .icon { color: var(--dutch-creme); }
+.keytile__text { display: flex; flex-direction: column; min-width: 0; }
+/* Copy is written to fit one line each; if a narrow screen can't, it wraps rather than hiding a restriction */
+.keytile__label, .keytile__value, .keytile__sub { display: block; overflow-wrap: anywhere; }
+.keytile__label { font-size: 0.8125rem; color: rgba(255,255,255,0.72); }
+.keytile__value { font-weight: 700; font-size: 1.0625rem; line-height: 1.35; color: var(--white); }
+button.keytile .keytile__value { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; text-decoration-color: rgba(255,255,255,0.55); }
+.keytile__sub { font-size: 0.8125rem; line-height: 1.4; color: rgba(255,255,255,0.72); margin-top: 2px; }
+@media (max-width: 359px) { :root { --page-pad: 16px; } .keytiles { gap: 8px; } .keytile { padding: 12px 10px 14px; } .keytile__value { font-size: 0.9375rem; } .keytile__label, .keytile__sub { font-size: 0.75rem; } }
+
+/* ================= Booked mode: the page shifts from inspiring to informing ================= */
+/* "booked" content also serves the day-of view ("today") */
+html[data-mode="booked"] [data-show="browse"], html[data-mode="today"] [data-show="browse"], html[data-mode="browse"] [data-show="booked"] { display: none !important; }
+/* Your plan — boarding-pass card on the navy, same surface as the key-fact tiles */
+[data-bind="pass"] { padding: 4px 0 36px; } /* padding, not margin, so the navy band can't collapse away */
+.pass { overflow: hidden; /* clips the notches so only the inward half shows */ margin: 0; border-radius: var(--radius-m); background: rgba(255,255,255,0.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+.pass__main { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+.pass__top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.pass__eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dutch-creme); }
+.pass__pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-xl); background: rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 700; color: var(--white); }
+.pass__pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #4ED36A; }
+.pass__pill--now::before { background: var(--mes-orange); }
+.pass__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pass__actions .pass__btn { justify-content: center; padding: 0 10px; }
+@media (min-width: 640px) { .pass__actions { display: flex; } .pass__actions .pass__btn { padding: 0 16px; } }
+@media (max-width: 359px) { .pass__fields { grid-template-columns: repeat(3, auto); justify-content: space-between; } .pass__field dd { white-space: nowrap; } }
+.pass__lead { display: flex; flex-direction: column; gap: 2px; }
+.pass__meet { font-family: var(--font-display); font-weight: 400; font-size: 1.75rem; line-height: 1.15; color: var(--white); }
+.pass__where { font-size: 1.0625rem; font-weight: 700; color: var(--white); margin-top: 4px; }
+.pass__hint { font-size: 0.8125rem; color: rgba(255,255,255,0.72); }
+/* Secondary facts: one quiet row under a hairline */
+.pass__fields { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding-top: 16px; border-top: 1.5px dashed rgba(255,255,255,0.22); }
+/* Ticket notches where the tear line meets the card edges (card padding 18px + half the 18px notch) */
+.pass__fields::before, .pass__fields::after { content: ""; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--hal-blue-dark); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+.pass__fields::before { left: -27px; }
+.pass__fields::after { right: -27px; }
+.pass__field { margin: 0; min-width: 0; }
+.pass__field--wide { grid-column: 1 / -1; }
+.pass__field dt, .pass__label { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+.pass__field dd { margin: 2px 0 0; font-size: 0.9375rem; font-weight: 700; color: var(--white); font-variant-numeric: tabular-nums; }
+.pass__field small { display: block; font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.72); margin-top: 2px; }
+/* Perforation with side notches cut to the navy */
+.pass__perf { position: relative; height: 0; margin: 0 18px; border-top: 1.5px dashed rgba(255,255,255,0.22); }
+.pass__perf::before, .pass__perf::after { content: ""; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--hal-blue-dark); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+.pass__perf::before { left: -28px; }
+.pass__perf::after { right: -28px; }
+.pass__stub { padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+.pass__list { display: flex; flex-direction: column; gap: 6px; }
+.pass__list li { display: flex; align-items: center; gap: 10px; font-size: 0.9375rem; color: rgba(255,255,255,0.92); }
+.pass__list .icon { width: 1rem; height: 1rem; stroke-width: 2.4; color: var(--dutch-creme); }
+.pass__foot { padding-top: 4px; }
+.pass__note { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; color: rgba(255,255,255,0.72); }
+.pass__note .icon { width: 1rem; height: 1rem; }
+.pass__btn { min-height: 40px; padding: 0 16px; border-radius: var(--radius-xl); font-size: 0.875rem; font-weight: 700; color: var(--white); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.7); display: inline-flex; align-items: center; gap: 6px; }
+.pass__btn:hover { background: rgba(255,255,255,0.1); }
+.pass__btn .icon { width: 1rem; height: 1rem; stroke-width: 2; }
+
+/* What to bring — its own checklist section (booked + day of) */
+.section__eyebrow-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.weather { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9375rem; color: var(--orange-text); font-variant-numeric: tabular-nums; }
+.weather .icon { width: 1.375rem; height: 1.375rem; stroke-width: 1.8; color: var(--mes-orange); }
+.bring__note { display: flex; align-items: center; gap: 8px; font-size: 0.9375rem; color: var(--neutral-70); margin: -4px 0 12px; }
+.bring__note .icon { width: 1.125rem; height: 1.125rem; color: var(--hal-blue); }
+.checklist { display: flex; flex-direction: column; gap: 4px; }
+.checklist li { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: center; padding: 8px 0; color: var(--neutral-90); }
+.checklist .tick { width: 24px; height: 24px; border-radius: 50%; background: var(--success-soft); color: var(--success-text); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(23,159,50,0.25); }
+.checklist .tick .icon { width: 0.875rem; height: 0.875rem; stroke-width: 3; }
+
+.steps-plain { counter-reset: s; display: flex; flex-direction: column; gap: 12px; }
+.steps-plain li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
+.steps-plain li::before { content: counter(s); width: 28px; height: 28px; border-radius: 50%; background: var(--blue-05); color: var(--hal-blue); font-weight: 700; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; }
+.quick { display: flex; flex-direction: column; gap: 8px; }
+.quick button { text-align: left; padding: 14px 16px; border-radius: 12px; box-shadow: inset 0 0 0 1.5px var(--blue-1); font-weight: 600; color: var(--hal-blue); }
+.quick button:hover { box-shadow: inset 0 0 0 1.5px var(--hal-blue); background: var(--blue-02); }
+
+/* ================= Why go: first white section — one image set + reasons ================= */
+.why__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.why__lead, .why__pair figure { border-radius: 8px; overflow: hidden; margin: 0; }
+/* Fixed at every breakpoint: lead 3:2, supporting pair 4:3 */
+.why__lead { aspect-ratio: 3 / 2; }
+.why__pair figure { aspect-ratio: 4 / 3; }
+.why__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.why img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, center); transition: transform var(--slow) var(--ease); }
+.why__btn { display: block; width: 100%; height: 100%; cursor: zoom-in; border-radius: inherit; overflow: hidden; }
+.why__btn:hover img { transform: scale(1.02); }
+.why__btn:focus-visible { box-shadow: inset 0 0 0 3px rgba(25,121,255,0.85); }
+.reasons { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+.reason { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; }
+.reason__icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--blue-05); color: var(--hal-blue); }
+.reason__icon .icon { width: 1.25rem; height: 1.25rem; stroke-width: 1.8; }
+.reason b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; line-height: 1.25; color: var(--hal-blue); }
+.why__more { margin-top: 24px; }
+.why__about { display: flex; flex-direction: column; gap: 14px; padding-top: 20px; font-size: 1.0625rem; line-height: 1.6; color: var(--neutral-90); max-width: 40rem; text-wrap: pretty; }
+.reason__text { display: block; font-size: 0.9375rem; color: var(--neutral-70); margin-top: 2px; }
+
+/* Detail drawers opened from the key-fact tiles */
+.info { display: flex; flex-direction: column; gap: 14px; padding-bottom: 8px; }
+.info__lead { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.3; color: var(--hal-blue); }
+.info__rows { border-top: 1px solid var(--border); }
+.info__row { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.info__row b { color: var(--neutral-90); }
+.info__row span { color: var(--neutral-70); text-align: right; }
+.info__row small { grid-column: 1 / -1; font-size: 0.875rem; color: var(--neutral-70); }
+.info ul { list-style: disc; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.levels { display: flex; flex-direction: column; gap: 8px; }
+.level { padding: 12px 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--border); }
+.level b { display: block; color: var(--hal-blue); }
+.level span { font-size: 0.875rem; color: var(--neutral-70); }
+.level.is-this { box-shadow: inset 0 0 0 2px var(--hal-blue); background: var(--blue-02); }
+.level.is-this b::after { content: " · This excursion"; font-weight: 600; font-size: 0.8125rem; color: var(--neutral-70); }
+
+/* ================= Compact header + jump nav ================= */
+.compact-header { position: fixed; left: 0; right: 0; top: 0; z-index: 9; height: var(--compact-h); padding-top: var(--safe-top); background: rgba(255,255,255,0.97); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  transform: translateY(-100%); visibility: hidden; transition: transform var(--fast) var(--ease), visibility 0s linear var(--fast); }
+.compact-header.is-visible { transform: none; visibility: visible; transition-delay: 0s; }
+.compact-header__inner { height: 48px; display: flex; align-items: center; gap: 4px; padding: 0 8px; max-width: var(--content-max); margin: 0 auto; }
+.compact-header__back { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--hal-blue); }
+.compact-header__back .icon { stroke-width: 2; }
+.compact-header__text { flex: 1; min-width: 0; margin-right: 48px; text-align: center; line-height: 1.2; }
+.compact-header__title { font-size: 0.9375rem; font-weight: 700; color: var(--hal-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compact-header__ctx { font-size: 0.75rem; color: var(--neutral-70); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.jump { position: sticky; top: var(--compact-h); z-index: 8; background: rgba(255,255,255,0.97); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); margin: 20px calc(-1 * var(--page-pad)) 0; transition: box-shadow var(--fast) var(--ease); }
+.jump.is-stuck { box-shadow: 0 1px 0 var(--border), 0 6px 14px rgba(3,15,31,0.05); }
+.jump__track { display: flex; gap: 8px; padding: 10px var(--page-pad); overflow-x: auto; scrollbar-width: none; scroll-padding: 0 var(--page-pad); }
+.jump__track::-webkit-scrollbar { display: none; }
+/* Fade on the trailing edge whenever more pills sit off-screen */
+.jump.has-more .jump__track { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
+.jump__pill { flex: none; text-decoration: none; padding: 8px 14px; min-height: 36px; display: inline-flex; align-items: center; border-radius: var(--radius-xl); font-size: 0.875rem; font-weight: 700; color: var(--neutral-70); background: var(--neutral-5); white-space: nowrap; transition: background var(--base) var(--ease), color var(--base) var(--ease); }
+.jump__pill[aria-current="true"] { background: var(--hal-blue); color: var(--white); }
+
+/* ================= Sections ================= */
+.section { padding: 36px 0 8px; scroll-margin-top: calc(var(--compact-h) + var(--jump-h) + 8px); }
+.section__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.section__title { font-size: 1.625rem; }
+.lead { font-size: 1.0625rem; line-height: 1.6; text-wrap: pretty; }
+.sub-h { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--neutral-60); margin-bottom: 12px; }
+
+
+/* ================= Departure times: one compact component everywhere ================= */
+.times-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; font-size: 0.8125rem; color: var(--neutral-70); }
+.times-label b { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--neutral-60); }
+.slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.slot { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 1px; min-height: 58px; padding: 9px 12px; border-radius: 12px; border: 1.5px solid var(--blue-1); background: var(--white); cursor: pointer; transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease); }
+.slot:hover { border-color: var(--blue-3); }
+.slot__time { font-weight: 700; color: var(--hal-blue); font-size: 1rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.slot__status { display: flex; align-items: center; gap: 5px; font-size: 0.8125rem; color: var(--neutral-70); white-space: nowrap; }
+.slot__status .icon { width: 0.875rem; height: 0.875rem; stroke-width: 2.4; }
+.slot[data-s="few"] .slot__status { color: var(--orange-text); font-weight: 700; }
+.slot[data-s="available"] .slot__status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+/* Waitlist: dashed edge + clock, wherever it appears */
+.slot[data-s="waitlist"] { border-style: dashed; }
+.slot[data-s="waitlist"] .slot__status { color: var(--hal-blue); font-weight: 700; }
+.slot[data-s="soldout"] { background: var(--neutral-5); border-color: var(--neutral-10); cursor: not-allowed; }
+.slot[data-s="soldout"] .slot__time { color: var(--neutral-60); text-decoration: line-through; text-decoration-thickness: 1px; }
+/* Selected: navy edge, tint, and a check pinned to the corner */
+.slot[aria-checked="true"] { border: 2px solid var(--hal-blue); background: var(--blue-02); padding: 8.5px 11.5px; }
+.slot__mark { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: var(--hal-blue); color: var(--white); display: none; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--white); }
+.slot[aria-checked="true"] .slot__mark { display: flex; }
+.slot__mark .icon { width: 12px; height: 12px; stroke-width: 3; }
+.slot-note { margin-top: 10px; display: flex; gap: 8px; align-items: flex-start; font-size: 0.875rem; line-height: 1.45; color: var(--neutral-70); }
+.slot-note .icon { width: 1.125rem; height: 1.125rem; color: var(--hal-blue); margin-top: 1px; }
+@media (max-width: 359px) { .slot { padding: 8px 9px; } .slot[aria-checked="true"] { padding: 7.5px 8.5px; } .slot__time { font-size: 0.9375rem; } }
+.notify { margin-top: 10px; }
+.chip-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px; border-radius: var(--radius-xl); border: 1px solid var(--hal-blue); color: var(--hal-blue); font-size: 0.875rem; font-weight: 700; transition: background var(--base) var(--ease); }
+.chip-btn[aria-pressed="true"] { background: var(--success-soft); border-color: var(--success); color: var(--success-text); }
+.chip-btn .icon { width: 1rem; height: 1rem; stroke-width: 2.4; }
+
+/* Booking controls */
+.calc { margin-top: 18px; display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.row__label { min-width: 0; }
+.row__label b { display: block; color: var(--hal-blue); }
+.row__label span { display: block; font-size: 0.8125rem; color: var(--neutral-70); }
+.stepper { flex: none; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-xl); background: var(--neutral-5); padding: 4px; }
+.stepper button { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--hal-blue); background: var(--white); box-shadow: 0 1px 2px rgba(3,15,31,0.12); }
+.stepper button:disabled { color: var(--neutral-40); box-shadow: none; background: transparent; cursor: not-allowed; }
+.stepper output { min-width: 2rem; text-align: center; font-weight: 700; color: var(--hal-blue); font-variant-numeric: tabular-nums; }
+.switch { position: relative; width: 52px; height: 32px; border-radius: 16px; background: var(--neutral-40); flex: none; transition: background var(--base) var(--ease); }
+.switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 3px rgba(3,15,31,0.25); transition: transform var(--base) var(--ease); }
+.switch[aria-checked="true"] { background: var(--hal-blue); }
+.switch[aria-checked="true"]::after { transform: translateX(20px); }
+.sum { padding-top: 16px; border-top: 1px solid var(--border); }
+.sum__row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 700; color: var(--hal-blue); }
+.sum__row b { font-size: 1.375rem; font-family: var(--font-display); font-weight: 400; }
+.sum__note { font-size: 0.8125rem; color: var(--neutral-70); margin-top: 2px; }
+.rv__credit { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.total { padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.total__line { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9375rem; color: var(--neutral-70); }
+.total__line.is-credit { color: var(--success-text); }
+.total__sum { display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px; font-weight: 700; color: var(--hal-blue); font-size: 1.125rem; }
+.total__where { font-size: 0.8125rem; color: var(--neutral-70); }
+.notice { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--radius-m); background: var(--blue-05); font-size: 0.875rem; color: var(--neutral-90); }
+.notice .icon { width: 1.25rem; height: 1.25rem; color: var(--hal-blue); margin-top: 1px; }
+.notice b { color: var(--hal-blue); }
+.notice--warn { background: #FFF4EC; }
+.notice--warn .icon { color: var(--orange-text); }
+
+/* Price & times section (phone/tablet; the desktop card replaces it) */
+.price-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.price-head .display { font-size: 2rem; }
+.credit-rule { margin-top: 16px; }
+.booked-box { padding: 18px; border-radius: var(--radius-m); background: var(--blue-05); display: flex; flex-direction: column; gap: 8px; }
+.booked-box b { color: var(--hal-blue); }
+
+
+/* Expand in place */
+.reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--slow) var(--ease), opacity var(--slow) var(--ease); opacity: 0; visibility: hidden; }
+.reveal > div { overflow: hidden; min-height: 0; }
+.reveal.is-open { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
+[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.chev { transition: transform var(--base) var(--ease); }
+
+/* Policies: summary always visible in the sub line */
+.acc { border-top: 1px solid var(--border); }
+.acc:last-child { border-bottom: 1px solid var(--border); }
+.acc__head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 16px 0; text-align: left; }
+.acc__head > .icon:first-child { color: var(--hal-blue); }
+.acc__titles { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.acc__title { font-weight: 700; color: var(--hal-blue); font-size: 1.0625rem; }
+.acc__sub { font-size: 0.875rem; color: var(--neutral-70); }
+.acc .chev { width: 1.25rem; height: 1.25rem; stroke-width: 2; color: var(--hal-blue); }
+.acc__body { padding: 0 0 18px; display: flex; flex-direction: column; gap: 10px; font-size: 0.9375rem; }
+.acc__body ul { list-style: disc; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+
+
+/* Footer: sample-data note + prototype states */
+.foot-note { padding: 24px 0 36px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; font-size: 0.8125rem; color: var(--neutral-60); }
+.proto__toggle { color: var(--neutral-70); font-size: 0.75rem; font-weight: 700; padding: 8px 14px; border-radius: 360px; box-shadow: inset 0 0 0 1px var(--border); }
+.proto__panel { width: min(100%, 340px); text-align: left; background: #fff; color: var(--neutral-90); border-radius: 14px; box-shadow: var(--shadow-card); padding: 14px; display: flex; flex-direction: column; gap: 12px; font-size: 0.8125rem; line-height: 1.4; }
+.proto__label { font-weight: 700; color: var(--hal-blue); margin-bottom: 6px; }
+.proto__opts { display: flex; flex-wrap: wrap; gap: 4px; }
+.proto__opts button { min-height: 32px; padding: 6px 10px; border-radius: 6px; color: var(--neutral-70); font-weight: 600; background: var(--neutral-5); }
+.proto__opts button[aria-pressed="true"] { background: var(--hal-blue); color: #fff; }
+
+/* ================= Buttons, bar, card ================= */
+.btn { min-height: 48px; padding: 0 22px; border-radius: var(--radius-xl); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.0625rem; font-weight: 600; background: var(--hal-blue); color: var(--white); transition: background var(--fast) var(--ease), transform var(--fast) var(--ease); text-align: center; }
+.btn:hover:not(:disabled) { background: var(--primary-hover); }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn:disabled { background: var(--neutral-10); color: var(--neutral-60); cursor: not-allowed; }
+.btn--ghost { background: transparent; color: var(--hal-blue); box-shadow: inset 0 0 0 1.5px var(--hal-blue); }
+.btn--ghost:hover:not(:disabled) { background: var(--neutral-5); }
+.btn--danger { background: transparent; color: var(--alert); box-shadow: inset 0 0 0 1.5px var(--alert); }
+.btn--danger:hover:not(:disabled) { background: #FFF2F2; }
+.btn--solid-danger { background: var(--alert); }
+.btn--solid-danger:hover:not(:disabled) { background: #8E0000; }
+.btn--block { width: 100%; }
+.btn .icon { width: 1.25rem; height: 1.25rem; stroke-width: 2; }
+
+.booking-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--white); box-shadow: var(--shadow-bar); border-top: 1px solid var(--border); padding: 12px 0 calc(12px + var(--safe-bottom)); }
+.booking-bar .container { display: flex; align-items: center; gap: 12px; }
+.bar__summary { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; text-align: left; }
+.bar__line1 { font-weight: 700; color: var(--hal-blue); font-size: 1.0625rem; }
+.bar__line2 { font-size: 0.8125rem; color: var(--neutral-70); }
+.bar__line2 .few { color: var(--orange-text); font-weight: 700; }
+.bar__line2 > span { white-space: nowrap; }
+.bar__unit, .card__unit { font-weight: 400; font-size: 0.875rem; color: var(--neutral-70); font-family: var(--font-body); letter-spacing: 0; }
+.booking-bar .btn { flex: none; white-space: nowrap; }
+@media (max-width: 359px) { .booking-bar .container { gap: 10px; } .booking-bar .btn { padding: 0 16px; font-size: 1rem; } .bar__line1 { font-size: 1rem; } }
+.page { padding-bottom: var(--bar-h); overflow-x: clip; }
+.booking-card { display: none; }
+
+/* ================= Sheets ================= */
+.sheet-layer { position: fixed; inset: 0; z-index: 40; pointer-events: none; visibility: hidden; transition: visibility 0s linear var(--slow); }
+.sheet-layer.is-open { pointer-events: auto; visibility: visible; transition-delay: 0s; }
+.scrim { position: absolute; inset: 0; background: rgba(3,15,31,0.48); opacity: 0; transition: opacity var(--slow) var(--ease); }
+.is-open > .scrim { opacity: 1; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 92%; background: var(--white); border-radius: var(--radius-l) var(--radius-l) 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: transform var(--slow) var(--ease); }
+.sheet-layer.is-open .sheet { transform: none; }
+.sheet__grab { flex: none; display: flex; justify-content: center; padding-top: 8px; }
+.sheet__grab::before { content: ""; width: 36px; height: 5px; border-radius: 3px; background: var(--neutral-20); }
+.sheet__head { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 14px 10px; }
+.sheet__close { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--hal-blue); }
+.sheet__close .icon { stroke-width: 2; }
+.sheet__title { flex: 1; text-align: center; margin-right: 52px; font-size: 1.0625rem; font-weight: 700; color: var(--hal-blue); }
+.sheet__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 8px 24px 24px; }
+.sheet__foot { flex: none; padding: 18px 24px calc(20px + var(--safe-bottom)); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+.step { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--neutral-60); margin: 0 0 10px; }
+.ctx { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--radius-m); background: var(--blue-05); margin-bottom: 14px; }
+.ctx .icon { color: var(--hal-blue); }
+.ctx b { display: block; color: var(--hal-blue); font-size: 0.9375rem; }
+.ctx span { font-size: 0.8125rem; color: var(--neutral-70); }
+.rv { display: flex; flex-direction: column; }
+.rv__row { display: grid; grid-template-columns: 6.5rem 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9375rem; }
+.rv__row > span:first-child { color: var(--neutral-70); }
+.rv__row b { color: var(--hal-blue); display: block; }
+.rv__row small { display: block; font-size: 0.8125rem; color: var(--neutral-70); margin-top: 2px; }
+.rv__row--credit b { color: var(--success-text); }
+.rv__row--total { border-bottom: 0; }
+.rv__row--total b { font-size: 1.25rem; }
+.steps { counter-reset: s; display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 0.9375rem; }
+.steps li::before { content: counter(s); width: 26px; height: 26px; border-radius: 50%; background: var(--hal-blue); color: var(--white); font-size: 0.8125rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.steps b { color: var(--hal-blue); }
+.policy-box { margin-top: 16px; }
+.fine { font-size: 0.8125rem; color: var(--neutral-70); text-align: center; }
+.confirm { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0; }
+.confirm__mark { width: 64px; height: 64px; border-radius: 50%; background: var(--success-soft); color: var(--success); display: flex; align-items: center; justify-content: center; }
+.confirm__mark--wait { background: var(--blue-05); color: var(--hal-blue); }
+.confirm__mark svg { width: 34px; height: 34px; stroke-width: 2.4; stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw 500ms 120ms var(--ease) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.confirm__title { font-size: 1.625rem; }
+.confirm__card { width: 100%; margin-top: 8px; text-align: left; padding: 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); display: flex; flex-direction: column; gap: 4px; font-size: 0.9375rem; }
+.confirm__card b { color: var(--hal-blue); }
+
+/* ================= Lightbox ================= */
+.lightbox { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; color: var(--white);
+  background: rgba(3,12,26,0.82); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  opacity: 0; visibility: hidden; transition: opacity var(--base) var(--ease), visibility 0s linear var(--base); }
+.lightbox.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
+.lb-top { flex: none; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: calc(var(--safe-top) + 12px) 12px 8px; }
+.lb-count { justify-self: center; padding: 4px 12px; border-radius: 360px; background: rgba(10,22,40,0.55); font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+.lb-close { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--white); background: rgba(10,22,40,0.55); }
+.lb-close .icon { stroke-width: 2; }
+.lb-track { flex: 1; display: flex; align-items: center; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 12px 28px 24px; scroll-padding: 0 28px; }
+.lb-track::-webkit-scrollbar { display: none; }
+.lb-slide { flex: 0 0 min(100%, 440px); scroll-snap-align: center; align-self: center; max-height: none; display: flex; flex-direction: column; background: var(--white); border-radius: 24px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.35); transition: transform var(--slow) var(--ease), opacity var(--slow) var(--ease); }
+.lb-slide[aria-hidden="true"] { transform: scale(0.96); opacity: 0.55; }
+.lb-img { flex: none; height: min(48vh, 400px); }
+.lb-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* Cards hug their content: same compact bottom margin for guest photos and Why go photos */
+.lb-body { flex: none; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 4px; }
+.lb-title { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; line-height: 1.25; color: var(--hal-blue); }
+.lb-text { font-size: 0.9375rem; line-height: 1.45; color: var(--neutral-70); text-wrap: pretty; }
+/* Photo-first variant (Why go): bigger image, one quiet caption line */
+.lightbox--photo .lb-slide { flex-basis: min(100%, 560px); align-self: center; max-height: none; border-radius: 20px; }
+.lightbox--photo .lb-img { height: auto; aspect-ratio: 4 / 3; }
+.lightbox--photo .lb-body { flex: none; padding: 16px 18px 18px; }
+.lb-place { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 1rem; line-height: 1.35; color: var(--hal-blue); }
+.lb-place .icon { width: 1.125rem; height: 1.125rem; stroke-width: 2; color: var(--hal-blue); }
+.lb-place span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 359px) { .lb-track { padding-left: 16px; padding-right: 16px; scroll-padding: 0 16px; } .lb-body, .lightbox--photo .lb-body { padding-left: 14px; padding-right: 14px; } .lb-place { font-size: 0.9375rem; } .lb-caption { font-size: 0.875rem !important; } }
+.lb-caption { font-size: 0.9375rem; line-height: 1.4; color: var(--neutral-70); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-nav { flex: none; display: flex; justify-content: center; gap: 12px; padding: 0 0 calc(20px + var(--safe-bottom)); }
+.lb-nav .round-btn { background: rgba(10,22,40,0.55); color: var(--white); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.7); }
+.lb-nav .round-btn:disabled { opacity: 0.35; cursor: default; }
+
+.toast { position: fixed; left: 50%; bottom: calc(var(--bar-h) + 16px); z-index: 60; transform: translate(-50%, 10px); opacity: 0; pointer-events: none; background: var(--neutral-90); color: var(--white); font-size: 0.9375rem; font-weight: 600; padding: 12px 18px; border-radius: var(--radius-xl); box-shadow: var(--shadow-card); transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease); width: max-content; max-width: calc(100% - 40px); text-align: center; }
+.toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ================= Tablet ≥ 640 ================= */
+@media (min-width: 640px) {
+  :root { --page-pad: 32px; --content-max: 784px; }
+  .hero { height: calc(clamp(460px, 62svh, 580px) + var(--safe-top)); }
+  .hero__title { font-size: 2.75rem; }
+  .keytiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .reasons { flex-direction: row; gap: 24px; }
+  .reason { flex: 1 1 0; grid-template-columns: 1fr; gap: 10px; }
+  .why__title, .section__title { font-size: 2rem; }
+  .pack { grid-template-columns: 1fr 1fr; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+  .sheet { left: 50%; right: auto; width: 560px; transform: translate(-50%, 100%); }
+  .sheet-layer.is-open .sheet { transform: translate(-50%, 0); }
+  .jump { box-shadow: 0 0 0 100vmax rgba(255,255,255,0.97); clip-path: inset(0 -100vmax -16px); }
+  .jump.is-stuck { box-shadow: 0 0 0 100vmax rgba(255,255,255,0.97), 0 1px 0 var(--border), 0 6px 14px rgba(3,15,31,0.05); }
+}
+
+/* ================= Desktop ≥ 1024 ================= */
+@media (min-width: 1024px) {
+  :root { --page-pad: 40px; --content-max: 1280px; --bar-h: 0px; --compact-h: 60px; }
+  .page { padding-bottom: 0; }
+  .booking-bar { display: none; }
+  .hero { height: min(560px, 58vh); min-height: 460px; }
+  .hero__top { padding: 0 24px; top: 24px; }
+  .hero__scrim::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2,30,70,0.55) 0%, rgba(2,30,70,0.25) 34%, rgba(2,30,70,0) 58%); }
+  .hero__body { padding-bottom: 28px; }
+  /* Headline spans the whole left column (column width = container minus the 380px card and 64px gap) */
+  .hero__title { font-size: 3.25rem; max-width: calc(100% - 444px); }
+  .hero__lead { font-size: 1.1875rem; max-width: calc(100% - 444px); }
+  .keytiles { padding-top: 4px; grid-template-columns: 1fr 1fr; }
+  .compact-header { border-bottom: 1px solid var(--border); }
+  .compact-header__inner { height: 60px; padding: 0 calc(var(--page-pad) - 12px); }
+  .compact-header__text { text-align: left; margin-right: 0; display: flex; align-items: baseline; gap: 12px; }
+  .compact-header__title { font-size: 1rem; }
+  .compact-header__ctx { font-size: 0.875rem; }
+
+  .layout { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 380px; column-gap: 64px; align-items: start; }
+  .band { grid-column: 1; grid-row: 1; }
+  .main-col { min-width: 0; grid-column: 1; grid-row: 2; }
+  .why__title { font-size: 2.25rem; }
+  .jump { margin: 40px 0 0; box-shadow: none; clip-path: none; }
+  .jump.is-stuck { box-shadow: 0 10px 12px -10px rgba(3,15,31,0.12); }
+  .jump__track { padding: 12px 0; }
+  .section { padding-top: 44px; }
+  .section--mobile-only { display: none; }
+  .lead { font-size: 1.1875rem; max-width: 62ch; }
+  .toast { bottom: 32px; }
+
+  /* Booking card rises into the hero beside the title, then stays in view */
+  .booking-card { display: flex; flex-direction: column; gap: 16px; grid-column: 2; grid-row: 1 / span 2; position: sticky; top: calc(var(--compact-h) + 20px); margin-top: -230px; padding: 24px; background: var(--white); border-radius: var(--radius-l); box-shadow: var(--shadow-card), 0 0 0 1px rgba(3,15,31,0.04); z-index: 5;
+    max-height: calc(100vh - var(--compact-h) - 40px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  /* Booked / day of: the card is short, so it aligns its top with the Your plan pass (band padding is 4px) */
+  /* Every state: the card's top aligns with the first block in the navy band (tiles or Your plan; both sit 4px down) */
+  .booking-card { margin-top: 4px; }
+  .card__ctx { font-size: 0.8125rem; color: var(--neutral-70); }
+  .card__price { font-size: 2rem; line-height: 1.1; }
+  .card__date { font-size: 0.875rem; color: var(--neutral-70); }
+  .booking-card .slot { padding-left: 10px; padding-right: 10px; }
+  .booking-card .slot[aria-checked="true"] { padding-left: 9.5px; padding-right: 9.5px; }
+
+  .sheet { left: 50%; top: 50%; bottom: auto; width: 500px; max-height: min(860px, 92vh); border-radius: var(--radius-l); opacity: 0; transform: translate(-50%, -46%); transition: transform var(--slow) var(--ease), opacity var(--slow) var(--ease); }
+  .sheet-layer.is-open .sheet { opacity: 1; transform: translate(-50%, -50%); }
+  .sheet__grab { display: none; }
+  /* Desktop dialog: roomier than the phone drawer */
+  .sheet { width: 540px; }
+  .sheet__head { padding: 18px 20px 12px; }
+  .sheet__body { padding: 8px 36px 32px; }
+  .sheet__foot { padding: 22px 36px 32px; gap: 14px; }
+  .lb-track { padding-left: calc(50% - 220px); padding-right: calc(50% - 220px); }
+  .lightbox--photo .lb-track { padding-left: calc(50% - 280px); padding-right: calc(50% - 280px); }
+}
+
+@media (min-width: 1280px) { .keytiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .slide.is-kb img { animation: none; }
+  *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; animation-delay: 0ms !important; scroll-behavior: auto !important; }
+  .confirm__mark svg { stroke-dashoffset: 0; }
+}
+
+/* ================= Dining additions ================= */
+/* Open / closed: onboard only. A status tag above the eyebrow; content never changes with it. */
+.hero__tag { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 10px; border-radius: var(--radius-xl); background: var(--white); color: var(--hal-blue); font-size: 0.875rem; font-weight: 700; line-height: 1.3; text-shadow: none; box-shadow: 0 2px 8px rgba(3,15,31,0.18); }
+.hero__tag::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex: none; }
+.hero__tag[data-tone="closed"]::before { background: var(--alert); }
+/* Times grouped by meal: same slot component, one row per meal */
+.meal + .meal { margin-top: 16px; }
+/* No cruise: the booking bar has nothing to offer */
+html[data-trip="nocruise"] .booking-bar { display: none; }
+/* Ships featuring the restaurant (no cruise) — plain two-column list under hairlines */
+.ships { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 0.9375rem; font-weight: 600; color: var(--neutral-90); }
+/* Before you dine: quick links under the checklist */
+.dine__links { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.dine__links .link { padding: 6px 0; }
+/* Menu drawers */
+.menu-group { display: flex; flex-direction: column; gap: 6px; }
+.menu-group + .menu-group { margin-top: 4px; }
+.menu-group b { color: var(--hal-blue); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M17 7L7 17M7 7l10 10"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2"/></symbol>
+    <symbol id="i-act" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+    <symbol id="i-group" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-lang" viewBox="0 0 24 24"><path d="M6.5 2.5h1.7M2 5.6h12.4M12.4 5.6L4.1 14.4M5.3 8l5.9 6.4M12 22.1l5-9.5 5 9.5M13.8 18.5h6.4"/></symbol>
+    <symbol id="i-age" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></symbol>
+    <symbol id="i-access" viewBox="0 0 24 24"><path d="M16 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM18 19l1-7-6 1M5 8l3-3 5.5 3-2.36 3.5M4.24 14.5a5 5 0 0 0 6.88 6M13.76 17.5a5 5 0 0 0-6.88-6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></symbol>
+    <symbol id="i-partly" viewBox="0 0 24 24"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.65a4 4 0 0 0-5.93-4.13M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+    <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 10v12M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88z"/></symbol>
+    <symbol id="i-ship" viewBox="0 0 24 24"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6M12 10v4M12 2v3"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 7c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM2 10h20"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+<symbol id="i-food" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></symbol>
+<symbol id="i-wine" viewBox="0 0 24 24"><path d="M8 22h8M12 15v7M7 2h10l1 6a6 6 0 0 1-12 0zM6.5 7h11"/></symbol>
+  </defs>
+</svg>
+
+<!-- Slim back bar (appears when the jump nav pins) -->
+<div class="compact-header" id="compact" aria-hidden="true">
+  <div class="compact-header__inner">
+    <button class="compact-header__back" type="button" data-action="back" aria-label="Back to Dining" tabindex="-1"><svg class="icon"><use href="#i-back"/></svg></button>
+    <div class="compact-header__text">
+      <div class="compact-header__title">Pinnacle Grill</div>
+      <div class="compact-header__ctx" data-bind="compact-ctx">Koningsdam · Deck 2, Aft</div>
+    </div>
+  </div>
+</div>
+
+<main class="page" id="page">
+
+  <header class="hero">
+    <div class="gallery" id="gallery" aria-hidden="true"></div>
+    <div class="hero__blur" aria-hidden="true"></div>
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="hero__top">
+      <button class="round-btn" type="button" data-action="back" aria-label="Back to Dining"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg></button>
+      <div class="hero__ctrl">
+        <div class="dots" data-bind="dots" role="group" aria-label="Hero photos"></div>
+        <button class="hero__pause" type="button" data-action="slideshow" aria-pressed="false" aria-label="Pause slideshow"><svg class="icon" aria-hidden="true"><use href="#i-pause"/></svg></button>
+      </div>
+    </div>
+    <div class="hero__body">
+      <div class="container">
+        <p class="hero__tag" data-bind="hero-tag" hidden></p>
+        <p class="hero__eyebrow" data-bind="hero-eyebrow">American steakhouse · Deck 2, Aft</p>
+        <h1 class="hero__title">Pinnacle Grill</h1>
+        <p class="hero__lead">Prime steaks and seafood on white linen, with the sea outside the window.</p>
+      </div>
+    </div>
+  </header>
+
+<div class="container layout">
+  <!-- Navy band: menus, dress code and reservations as key tiles (booked: your table) -->
+  <div class="band">
+    <div data-show="booked" data-bind="pass"></div>
+    <ul class="keytiles" aria-label="Key facts" data-show="browse" data-bind="keytiles"></ul>
+  </div>
+
+  <div class="main-col">
+    <nav class="jump" id="jump" aria-label="Jump to section">
+      <div class="jump__track" id="jump-track"></div>
+    </nav>
+
+    <!-- Booked / day of: before you dine -->
+    <section class="section" id="dine" data-section data-show="booked" aria-labelledby="dine-h">
+      <div class="section__head"><span class="eyebrow" data-bind="dine-eyebrow">Before you dine</span><h2 class="display section__title" id="dine-h" data-bind="dine-title">Ready for dinner</h2></div>
+      <ul class="checklist" data-bind="dine"></ul>
+      <p class="dine__links" data-bind="dine-links"></p>
+    </section>
+
+    <!-- At the table: first white section -->
+    <section class="section why" id="why" data-show="browse" data-section aria-labelledby="why-h">
+      <div class="why__head">
+        <span class="eyebrow">At the table</span>
+        <h2 class="display section__title" id="why-h">Come hungry, stay a while</h2>
+      </div>
+      <div data-bind="story"></div>
+    </section>
+
+    <!-- Price & times (phone/tablet; desktop uses the booking card) -->
+    <section class="section section--mobile-only" id="times" data-show="browse" data-section aria-labelledby="times-h">
+      <div class="section__head"><span class="eyebrow">Price &amp; times</span><h2 class="display section__title" id="times-h">Lunch $19 · Dinner $59</h2><p class="muted">Per guest · 20% service charge added onboard</p></div>
+      <div data-bind="times-body"></div>
+    </section>
+
+    <!-- No cruise: where to find it -->
+    <section class="section" id="ships" data-section data-trip-only="nocruise" aria-labelledby="ships-h">
+      <div class="section__head"><span class="eyebrow">Featured on</span><h2 class="display section__title" id="ships-h">Ships featuring Pinnacle Grill</h2></div>
+      <ul class="ships" data-bind="ships"></ul>
+    </section>
+
+    <!-- Policies -->
+    <section class="section" id="policies" data-section aria-labelledby="policies-h">
+      <div class="section__head"><h2 class="eyebrow" id="policies-h" data-bind="policies-h">Before you book</h2></div>
+      <div data-bind="policies"></div>
+    </section>
+
+  </div>
+
+  <!-- Desktop booking card -->
+  <aside class="booking-card" aria-label="Reserve a table" data-bind="card"></aside>
+</div>
+
+  <footer class="foot-note container">
+    <p>Prototype with sample content. Menus, prices, availability and credits are illustrative, and nothing is booked or charged.</p>
+    <button class="proto__toggle" type="button" data-action="proto-toggle" aria-expanded="false" aria-controls="proto-panel">Prototype states</button>
+    <div class="proto__panel" id="proto-panel" hidden>
+      <div><div class="proto__label">Trip</div><div class="proto__opts" data-bind="proto-trip"></div></div>
+      <div><div class="proto__label">Restaurant (onboard)</div><div class="proto__opts" data-bind="proto-venue"></div></div>
+      <div><div class="proto__label">11:30 AM lunch availability</div><div class="proto__opts" data-bind="proto-first"></div></div>
+      <div><div class="proto__label">Dining credit on the stateroom</div><div class="proto__opts" data-bind="proto-credits"></div></div>
+      <div class="proto__opts"><button type="button" data-action="proto-booked">Preview booked</button><button type="button" data-action="proto-today">Preview day of</button><button type="button" data-action="proto-reset">Reset</button></div>
+    </div>
+  </footer>
+</main>
+
+<!-- Mobile booking bar -->
+<div class="booking-bar" role="region" aria-label="Reserve">
+  <div class="container" data-bind="bar"></div>
+</div>
+
+<!-- Sheet / dialog -->
+<div class="sheet-layer" id="sheet-layer">
+  <div class="scrim" data-action="close-sheet"></div>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet__grab"></div>
+    <div class="sheet__head">
+      <button class="sheet__close" type="button" data-action="close-sheet" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+      <h2 class="sheet__title" id="sheet-title" data-bind="sheet-title" tabindex="-1"></h2>
+    </div>
+    <div class="sheet__body" data-bind="sheet-body"></div>
+    <div class="sheet__foot" data-bind="sheet-foot" hidden></div>
+  </section>
+</div>
+
+<!-- Photo viewer -->
+<div class="lightbox lightbox--photo" id="lightbox" role="dialog" aria-modal="true" aria-label="Photos">
+  <div class="lb-top"><span></span><span class="lb-count" data-bind="lb-count" aria-live="polite">1 of 3</span><button class="lb-close" type="button" data-action="close-lightbox" aria-label="Close photos"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <div class="lb-track" id="lb-track" tabindex="0" aria-label="Use arrow keys to move between photos"></div>
+  <div class="lb-nav">
+    <button class="round-btn" type="button" data-action="lb-prev" aria-label="Previous photo"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <button class="round-btn" type="button" data-action="lb-next" aria-label="Next photo"><svg class="icon" aria-hidden="true"><use href="#i-next"/></svg></button>
+  </div>
+</div>
+
+<div class="toast" role="status" aria-live="polite" data-bind="toast"></div>
+<div class="sr-only" aria-live="polite" data-bind="live"></div>
+
+<script>
+(() => {
+  /* ======================= Sample content (single source of truth) ======================= */
+  // Day 5 of the same voyage as Streamlined Shore Ex (Day 4 · Juneau is Saturday, Dec 12, 2026)
+  const VOYAGE = { ship: 'Koningsdam', day: 'Day 5 · At sea', dateLong: 'Sunday, December 13, 2026', dateMed: 'Sunday, Dec 13', dateShort: 'Sun, Dec 13', prevDay: 'Sat, Dec 12', ymd: '20261213', stateroom: 'Stateroom 7042' };
+  const VENUE = { name: 'Pinnacle Grill', where: 'Deck 2, Aft' };
+  const MAX_GUESTS = 8, HOLD_HOURS = 1;
+  const MEALS = { Lunch: { price: 19, days: 'Sea days', hours: '11:30 AM–1:30 PM' }, Dinner: { price: 59, days: 'Nightly', hours: '5:30–9:30 PM' } };
+  const DEPS = [
+    { meal: 'Lunch', time: '11:30 AM', min: 690, status: 'few', spots: 2 },
+    { meal: 'Lunch', time: '12:45 PM', min: 765, status: 'available', spots: 8 },
+    { meal: 'Dinner', time: '5:30 PM', min: 1050, status: 'available', spots: 6 },
+    { meal: 'Dinner', time: '7:00 PM', min: 1140, status: 'available', spots: 9 },
+    { meal: 'Dinner', time: '8:30 PM', min: 1230, status: 'waitlist', spots: 0 }
+  ];
+  const SHIPS = ['Eurodam', 'Koningsdam', 'Nieuw Amsterdam', 'Nieuw Statendam', 'Noordam', 'Oosterdam', 'Rotterdam', 'Volendam', 'Westerdam', 'Zaandam', 'Zuiderdam'];
+  const HERO = [
+    { src: 'assets/pinnacle-hero-1-ocean-view.webp', pos: '50% 50%', title: 'Tables by the windows, the sea outside' },
+    { src: 'assets/pinnacle-hero-2-filet-lobster.webp', pos: '50% 55%', title: 'Filet and lobster' },
+    { src: 'assets/pinnacle-hero-3-dining-room.jpg', pos: '50% 50%', title: 'The dining room' }
+  ];
+  const MOTION = [
+    { ox: '50%', oy: '50%', fx: '0%', fy: '0%', tx: '-3%', ty: '-1%' },
+    { ox: '45%', oy: '65%', fx: '-1%', fy: '1%', tx: '2%', ty: '-2%' },
+    { ox: '30%', oy: '50%', fx: '1%', fy: '0%', tx: '-2%', ty: '-1%' }
+  ];
+  // At the table: the plate first, then the glass, then the room
+  const WHY_IMGS = [
+    { img: 'assets/pinnacle-moment-1-steak.jpg', pos: '50% 50%', place: 'Pinnacle Grill', cap: 'Filet mignon and lobster tail', alt: 'A grilled filet mignon and a lobster tail with roast potatoes' },
+    { img: 'assets/pinnacle-moment-2-wine.jpg', pos: '50% 50%', place: 'Pinnacle Grill', cap: 'A glass poured at the table', alt: 'Red wine being poured into a glass at the table' },
+    { img: 'assets/pinnacle-moment-3-window-table.jpg', pos: '50% 50%', place: 'Pinnacle Grill', cap: 'A window table, with the sea beside you', alt: 'A table set for six beside a tall window looking out on a forested coastline' }
+  ];
+  const REASONS = [
+    { icon: 'food', title: 'Prime, dry-aged 28 days', text: 'USDA Prime steaks, cut to order' },
+    { icon: 'wine', title: 'A glass for every course', text: 'Pairings chosen by the sommelier' },
+    { icon: 'wave', title: 'Dinner with a view', text: 'White linen beside tall windows' }
+  ];
+  const MENUS = {
+    Lunch: [['Starters', ['Lobster bisque', 'Caesar salad']], ['Mains', ['Prime burger with truffle fries', 'Steak frites', 'Grilled salmon salad']], ['Desserts', ['Key lime pie']]],
+    Dinner: [['Starters', ['Jumbo shrimp cocktail', 'Steak tartare', 'Baby wedge salad']], ['Mains', ['Dry-aged bone-in ribeye', 'Filet mignon', 'Alaskan king salmon', 'Wild mushroom risotto']], ['Desserts', ['Chocolate volcano cake', 'Crème brûlée']]]
+  };
+  const DRESS = { name: 'Smart casual', text: 'Comfortable and put together, like dinner out with friends. No need to dress formally; choose what feels right for you.', tips: ['Slacks, chinos, dark jeans, dresses or skirts are all great choices.', 'Shirts, polos, blouses and sweaters work well.', 'Finish with shoes you’d wear out to dinner.', 'Add a jacket if you like. It’s entirely optional.'] };
+
+  /* ======================= State ======================= */
+  const q = new URLSearchParams(location.search);
+  const FIRST = ['available', 'few', 'waitlist', 'soldout'];
+  const state = {
+    // Pre-cruise and onboard are identical (the goal is to reserve); no cruise = browse only, no Reserve
+    trip: ['precruise', 'onboard', 'nocruise'].includes(q.get('trip')) ? q.get('trip') : 'onboard',
+    venue: q.get('venue') === 'closed' ? 'closed' : 'open',
+    first: FIRST.includes(q.get('first')) ? q.get('first') : 'few',
+    credits: q.has('credits') ? Math.max(0, Math.min(1, +q.get('credits') || 0)) : 1,
+    useCredits: true, dep: 3, guests: 2,
+    booking: null, wait: null, notify: {},
+    today: q.get('today') === '1', sheet: null, flow: 2, gallery: 0
+  };
+  const depList = () => DEPS.map((d, i) => ({ ...d, price: MEALS[d.meal].price, ...(i === 0 ? { status: state.first, spots: state.first === 'few' ? 2 : state.first === 'available' ? 8 : 0 } : {}) }));
+  const cur = () => depList()[state.dep];
+  const bookable = (d) => d.status === 'few' || d.status === 'available';
+  const maxGuests = () => MAX_GUESTS;
+  const money = (n) => (n < 0 ? '−' : '') + '$' + Math.abs(n).toLocaleString('en-US');
+  const fmt = (m) => { m = ((m % 1440) + 1440) % 1440; let h = Math.floor(m / 60); const mm = m % 60, ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${String(mm).padStart(2, '0')} ${ap}`; };
+  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  const deadline = (d) => `${VOYAGE.prevDay}, ${d.time}`;
+  const noCruise = () => state.trip === 'nocruise';
+  const statusShort = (d) => d.status === 'few' ? `${plural(d.spots, 'table')} left` : d.status === 'available' ? 'Available' : d.status === 'waitlist' ? 'Waitlist' : 'Full';
+  // One dining credit covers the cover charge for one guest
+  function totals(d = cur(), guests = state.guests) {
+    const sub = d.price * guests;
+    const used = state.useCredits ? Math.min(state.credits, guests) : 0;
+    const credit = used * d.price;
+    return { sub, used, credit, total: Math.max(0, sub - credit) };
+  }
+  // Default to the 7:00 PM dinner; otherwise the first table a guest can actually pick
+  function defaultDep() { const l = depList(); if (bookable(l[3])) return 3; let i = l.findIndex(bookable); if (i < 0) i = l.findIndex(d => d.status === 'waitlist'); return Math.max(0, i); }
+  function normalizeDep() { if (cur().status === 'soldout') state.dep = defaultDep(); state.guests = Math.max(1, Math.min(state.guests, MAX_GUESTS)); }
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const bind = (n) => $(`[data-bind="${n}"]`);
+  const ic = (id, cls = 'icon') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const deskMQ = matchMedia('(min-width: 1024px)');
+
+  /* ======================= At the table + photo viewer ======================= */
+  const whyImg = (m, i) => `<button class="why__btn" type="button" data-action="lightbox" data-i="${i}" aria-haspopup="dialog" aria-label="View photo ${i + 1} of ${WHY_IMGS.length}: ${m.cap}"><img src="${m.img}" alt="" loading="lazy" decoding="async" style="--pos:${m.pos}"></button>`;
+  bind('story').innerHTML = `<figure class="why__lead">${whyImg(WHY_IMGS[0], 0)}</figure>
+    <div class="why__pair">${WHY_IMGS.slice(1).map((m, k) => `<figure>${whyImg(m, k + 1)}</figure>`).join('')}</div>
+    <ul class="reasons">${REASONS.map(r => `<li class="reason"><span class="reason__icon">${ic(r.icon)}</span><span><b>${r.title}</b><span class="reason__text">${r.text}</span></span></li>`).join('')}</ul>
+    <button class="btn btn--ghost why__more" type="button" data-action="reveal" data-target="why-about" data-open="Show less" data-closed="Read about the restaurant" aria-expanded="false" aria-controls="why-about"><span>Read about the restaurant</span>${ic('down', 'icon chev')}</button>
+    <div class="reveal" id="why-about"><div><div class="why__about">
+      <p>Pinnacle Grill is our steakhouse at sea, aft on Deck 2. White linen, low light and tall windows on the water set the room. The dress is smart casual and the service unhurried, so a meal can easily take the evening.</p>
+      <p>Lunch is served on sea days and dinner every night. The kitchen dry-ages USDA Prime steaks for 28 days and cuts them to order, with seafood and vegetarian mains alongside, and bakes bread and desserts each afternoon. From the cellar, the sommelier can pair a glass with every course.</p>
+    </div></div></div>`;
+  bind('ships').innerHTML = SHIPS.map(s => `<li>${s}</li>`).join('');
+
+  /* ======================= Hero slideshow (ambient Ken Burns, pausable) ======================= */
+  const SLIDE_MS = 6500;
+  const gallery = $('#gallery');
+  gallery.innerHTML = HERO.map((h, i) => { const m = MOTION[i];
+    return `<figure class="slide" style="--ox:${m.ox};--oy:${m.oy};--fx:${m.fx};--fy:${m.fy};--tx:${m.tx};--ty:${m.ty};--pos:${h.pos}"><img src="${h.src}" alt="" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></figure>`; }).join('');
+  bind('dots').innerHTML = HERO.map((h, i) => `<button type="button" data-action="gal-go" data-i="${i}" aria-label="Photo ${i + 1} of ${HERO.length}: ${h.title}" aria-current="${i === 0}"></button>`).join('');
+  const slides = [...gallery.children];
+  let slideTimer = null, userPaused = false, heroVisible = true;
+  function showSlide(i) {
+    i = (i + HERO.length) % HERO.length;
+    const prev = slides[state.gallery]; state.gallery = i;
+    slides.forEach((sl, k) => sl.classList.toggle('is-active', k === i));
+    const next = slides[i]; next.classList.remove('is-kb'); void next.offsetWidth;
+    // Start the motion once the photo is decoded, so the first frame never paints empty
+    const start = () => requestAnimationFrame(() => { if (next.classList.contains('is-active') && !reduced()) next.classList.add('is-kb'); });
+    const img = next.querySelector('img'); if (img && img.decode) img.decode().then(start, start); else start();
+    if (prev && prev !== next) setTimeout(() => { if (!prev.classList.contains('is-active')) prev.classList.remove('is-kb'); }, 1900);
+    $$('button', bind('dots')).forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
+  }
+  const playing = () => !userPaused && heroVisible && !document.hidden && !reduced();
+  function schedule() { clearTimeout(slideTimer); if (playing()) slideTimer = setTimeout(() => { showSlide(state.gallery + 1); schedule(); }, SLIDE_MS); }
+  function setPaused(p) {
+    userPaused = p; const b = $('.hero__pause');
+    b.setAttribute('aria-pressed', String(p)); b.setAttribute('aria-label', p ? 'Play slideshow' : 'Pause slideshow');
+    $('use', b).setAttribute('href', p ? '#i-play' : '#i-pause');
+    slides.forEach(sl => sl.firstElementChild.style.animationPlayState = p ? 'paused' : '');
+    schedule();
+  }
+  new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; schedule(); }, { threshold: 0.2 }).observe($('.hero'));
+  document.addEventListener('visibilitychange', schedule);
+  if (reduced()) $('.hero__pause').hidden = true;
+  showSlide(0); schedule();
+
+  const lb = $('#lightbox'), lbTrack = $('#lb-track');
+  let lbIndex = 0, lbOpener = null, lbLen = 0;
+  const lbSlides = () => [...lbTrack.children];
+  function setCount() {
+    bind('lb-count').textContent = `${lbIndex + 1} of ${lbLen}`;
+    lbSlides().forEach((s, k) => s.setAttribute('aria-hidden', String(k !== lbIndex)));
+    $('[data-action="lb-prev"]').disabled = lbIndex === 0; $('[data-action="lb-next"]').disabled = lbIndex === lbLen - 1;
+  }
+  function lbTo(i, smooth = true) {
+    lbIndex = Math.max(0, Math.min(lbLen - 1, i)); const s = lbSlides()[lbIndex]; if (!s) return;
+    lbTrack.scrollTo({ left: s.offsetLeft - (lbTrack.clientWidth - s.clientWidth) / 2, behavior: smooth && !reduced() ? 'smooth' : 'auto' });
+    setCount();
+  }
+  let lbT;
+  lbTrack.addEventListener('scroll', () => { clearTimeout(lbT); lbT = setTimeout(() => {
+    const mid = lbTrack.scrollLeft + lbTrack.clientWidth / 2; let best = 0, dist = Infinity;
+    lbSlides().forEach((s, k) => { const d = Math.abs(s.offsetLeft + s.clientWidth / 2 - mid); if (d < dist) { dist = d; best = k; } });
+    if (best !== lbIndex) { lbIndex = best; setCount(); }
+  }, 60); }, { passive: true });
+  function openLightbox(i, opener) {
+    lbOpener = opener; lbLen = WHY_IMGS.length;
+    lb.setAttribute('aria-label', 'At the table photos');
+    lbTrack.innerHTML = WHY_IMGS.map((s, k) => `<article class="lb-slide" aria-roledescription="slide" aria-label="${k + 1} of ${WHY_IMGS.length}">
+        <div class="lb-img"><img src="${s.img}" alt="${s.alt}" decoding="async" style="object-position:${s.pos}"></div>
+        <div class="lb-body"><h3 class="lb-place">${ic('pin')}<span>${s.place}</span></h3><p class="lb-caption">${s.cap}</p></div></article>`).join('');
+    lbIndex = i; setCount();
+    lb.classList.add('is-open'); lockPage(true);
+    requestAnimationFrame(() => { lbTo(i, false); $('[data-action="close-lightbox"]').focus(); });
+  }
+  function closeLightbox() { lb.classList.remove('is-open'); if (!state.sheet) lockPage(false); lbOpener && lbOpener.focus({ preventScroll: true }); }
+  lb.addEventListener('click', (e) => { if (!e.target.closest('.lb-slide, button')) closeLightbox(); });
+
+  /* ======================= Shared booking components ======================= */
+  // One time control for page, card and sheet: grouped by meal, same marks and words everywhere
+  function slotsHTML(ctx) {
+    const list = depList();
+    const slot = (d, i) => {
+      const on = i === state.dep, full = d.status === 'soldout', onWait = state.wait && state.wait.dep === i;
+      const status = onWait ? `${ic('check')}On list` : d.status === 'waitlist' ? `${ic('clock')}Waitlist` : d.status === 'few' ? `${d.spots} left` : d.status === 'available' ? 'Available' : 'Full';
+      return `<div class="slot" role="radio" aria-checked="${on}"${full ? ' aria-disabled="true"' : ''} tabindex="${on ? 0 : -1}" data-i="${i}" data-ctx="${ctx}" data-s="${d.status}" aria-label="${d.meal} ${d.time}, ${d.status === 'few' ? plural(d.spots, 'table') + ' left' : statusShort(d)}">
+        <span class="slot__time">${d.time}</span><span class="slot__status">${status}</span><span class="slot__mark" aria-hidden="true">${ic('check')}</span></div>`;
+    };
+    const groups = Object.keys(MEALS).map(meal => `<div class="meal"><div class="times-label"><b>${meal} · ${money(MEALS[meal].price)}</b><span>${meal === 'Lunch' ? 'Sea days' : 'Nightly'}</span></div>
+      <div class="slots" role="presentation">${list.map((d, i) => d.meal === meal ? slot(d, i) : '').join('')}</div></div>`).join('');
+    const sel = cur(), selWait = state.wait && state.wait.dep === state.dep;
+    const note = sel.status === 'waitlist' && !selWait ? `<p class="slot-note">${ic('clock')}<span>The waitlist is free to join. You’re only charged if a table opens and you accept it.</span></p>` : '';
+    const notify = list.map((d, i) => [d, i]).filter(([d]) => d.status === 'soldout').map(([d, i]) => { const on = !!state.notify[i];
+      return `<button class="chip-btn" type="button" data-action="notify" data-i="${i}" aria-pressed="${on}">${ic(on ? 'check' : 'bell')}${on ? `We’ll tell you if ${d.time} opens` : `Notify me if ${d.time} opens`}</button>`; }).join('');
+    return `<div role="radiogroup" aria-label="Reservation time, ${VOYAGE.dateMed}">${groups}</div>${note}${notify ? `<div class="notify">${notify}</div>` : ''}`;
+  }
+  function guestsRow(ctx) {
+    return `<div class="row"><div class="row__label"><b id="g-${ctx}">Party size</b><span>Up to ${MAX_GUESTS} per table</span></div>
+      <div class="stepper" role="group" aria-labelledby="g-${ctx}">
+        <button type="button" data-action="guests" data-d="-1" data-ctx="${ctx}" aria-label="Remove a guest" ${state.guests <= 1 ? 'disabled' : ''}>${ic('minus')}</button>
+        <output aria-live="polite" aria-label="${plural(state.guests, 'guest')}">${state.guests}</output>
+        <button type="button" data-action="guests" data-d="1" data-ctx="${ctx}" aria-label="Add a guest" ${state.guests >= MAX_GUESTS ? 'disabled' : ''}>${ic('plus')}</button>
+      </div></div>`;
+  }
+  function totalsHTML() {
+    const d = cur(), t = totals(), wait = d.status === 'waitlist';
+    const note = t.used ? `${money(t.sub)} less your dining credit · 20% service charge added onboard` : `${state.guests} × ${money(d.price)} · 20% service charge added onboard`;
+    return `<div class="sum" aria-live="polite"><div class="sum__row"><span>${wait ? 'If a table opens' : 'Total'} · ${plural(state.guests, 'guest')}</span><b>${money(t.total)}</b></div><p class="sum__note">${note}</p></div>`;
+  }
+  // Primary action for the current selection. Same label in the bar and the card.
+  function primary() {
+    const d = cur();
+    if (state.booking) return { label: 'View booking', action: 'manage-booking' };
+    if (state.wait && state.wait.dep === state.dep) return { label: 'Waitlist details', short: 'Details', action: 'manage-wait', ghost: true };
+    if (d.status === 'waitlist') return { label: 'Join waitlist', action: 'reserve' };
+    return { label: 'Reserve', action: 'reserve' };
+  }
+
+  /* ======================= Render ======================= */
+  function renderTrip() {
+    const root = document.documentElement;
+    root.dataset.trip = state.trip;
+    $$('[data-trip-only]').forEach(s => { s.hidden = s.dataset.tripOnly !== state.trip; });
+    const tag = bind('hero-tag'), onboard = state.trip === 'onboard';
+    tag.hidden = !onboard; tag.dataset.tone = state.venue;
+    tag.textContent = state.venue === 'open' ? 'Open now · until 9:30 PM' : 'Closed · opens 5:30 PM';
+    const b = state.booking;
+    bind('hero-eyebrow').textContent = noCruise() ? 'American steakhouse · 11 ships' : isToday() ? `Today · ${VENUE.where}` : b ? `Your table · ${VOYAGE.dateShort}` : `American steakhouse · ${VENUE.where}`;
+    bind('compact-ctx').textContent = noCruise() ? 'American steakhouse · 11 ships' : `${VOYAGE.ship} · ${VENUE.where}`;
+  }
+  function renderKeytiles() {
+    const res = noCruise()
+      ? `<li><div class="keytile">${ic('cal')}<span class="keytile__text"><span class="keytile__label">Reservations</span><span class="keytile__value">Recommended</span><span class="keytile__sub">Book a cruise to reserve</span></span></div></li>`
+      : `<li><button class="keytile" type="button" data-action="reserve" data-from="tile" aria-haspopup="dialog">${ic('cal')}<span class="keytile__text"><span class="keytile__label">Reservations</span><span class="keytile__value">Recommended</span><span class="keytile__sub">Up to ${MAX_GUESTS} per table</span></span></button></li>`;
+    bind('keytiles').innerHTML = `
+      <li><button class="keytile" type="button" data-action="sheet" data-kind="menu-lunch" aria-haspopup="dialog">${ic('food')}<span class="keytile__text"><span class="keytile__label">Sea days</span><span class="keytile__value">Lunch menu</span><span class="keytile__sub">11:30–1:30 · $19</span></span></button></li>
+      <li><button class="keytile" type="button" data-action="sheet" data-kind="menu-dinner" aria-haspopup="dialog">${ic('food')}<span class="keytile__text"><span class="keytile__label">Nightly</span><span class="keytile__value">Dinner menu</span><span class="keytile__sub">5:30–9:30 · $59</span></span></button></li>
+      <li><button class="keytile" type="button" data-action="sheet" data-kind="dress" aria-haspopup="dialog">${ic('note')}<span class="keytile__text"><span class="keytile__label">Dress code</span><span class="keytile__value">Smart casual</span><span class="keytile__sub">Jackets optional</span></span></button></li>
+      ${res}`;
+  }
+  function renderTimesSection() {
+    const el = bind('times-body'), b = state.booking;
+    if (noCruise()) { el.innerHTML = `<div class="notice">${ic('ship')}<span><b>Reserve once you’ve booked a cruise.</b> Lunch is served on sea days and dinner every night, on ${plural(SHIPS.length, 'ship')}.</span></div>`; return; }
+    if (b) { const bd = depList()[b.dep];
+      el.innerHTML = `<div class="notice">${ic('check')}<span><b>You’re booked for ${bd.time}</b> · ${bd.meal.toLowerCase()}, ${plural(b.guests, 'guest')}. ${money(b.total)} charged to ${VOYAGE.stateroom}. <button class="link" type="button" data-action="manage-booking" aria-haspopup="dialog">View booking</button></span></div>`;
+      return; }
+    const onWait = state.wait && state.wait.dep === state.dep;
+    el.innerHTML = `<p class="sub-h">${VOYAGE.dateMed} · ${VOYAGE.day}</p>${slotsHTML('page')}${onWait ? `<div style="margin-top:12px">${waitNotice()}</div>` : ''}
+      ${state.credits ? `<div class="notice" style="margin-top:16px">${ic('star')}<span><b>You have 1 dining credit.</b> ${state.useCredits ? 'It covers one guest’s cover charge, applied when you reserve.' : 'Switched off for this booking; you can turn it back on in the review.'} Unused credits expire at the end of the voyage.</span></div>` : ''}`;
+  }
+  function renderBar() {
+    const d = cur(), p = primary(), b = state.booking;
+    let l1, l2;
+    if (isToday()) { const bd = depList()[b.dep]; l1 = `Table at ${bd.time}`; l2 = `In ${leavesIn()} · ${VENUE.where}`; }
+    else if (b) { const bd = depList()[b.dep]; l1 = `<span class="ok">You’re booked</span>`; l2 = `${VOYAGE.dateShort.split(',')[0]} ${bd.time} · ${plural(b.guests, 'guest')}`; }
+    else if (state.wait && state.wait.dep === state.dep) { l1 = `On the waitlist`; l2 = `${d.time} · no charge yet`; }
+    else { l1 = `${money(d.price)} <span class="bar__unit">per guest</span>`; l2 = `${VOYAGE.dateShort} · ${d.time} · <span class="${d.status === 'few' ? 'few' : ''}">${d.status === 'few' ? `${d.spots} left` : d.status === 'waitlist' ? 'Waitlist' : 'Available'}</span>`; }
+    bind('bar').innerHTML = `<div class="bar__summary"><span class="bar__line1">${l1}</span><span class="bar__line2">${l2}</span></div>
+      <button class="btn${p.ghost ? ' btn--ghost' : ''}" type="button" data-action="${p.action}" data-from="bar" aria-haspopup="dialog">${p.short || p.label}</button>`;
+  }
+  function renderCard() {
+    const p = primary(), b = state.booking;
+    let html = '';
+    if (noCruise()) {
+      html = `<div><div class="display card__price" style="font-size:1.75rem">Lunch $19 · Dinner $59</div><div class="card__date">Per guest · 20% service charge added onboard</div></div>
+        <div class="notice">${ic('ship')}<span><b>Reserve once you’ve booked a cruise.</b> Pinnacle Grill is on ${plural(SHIPS.length, 'ship')}. <button class="link" type="button" data-action="goto" data-target="ships">See the ships</button></span></div>`;
+    } else if (isToday()) {
+      const bd = depList()[b.dep];
+      html = `<div><span class="ok ok--now" style="font-weight:700;color:var(--orange-text)">Today · in ${leavesIn()}</span><div class="display card__price" style="margin-top:4px">Table at ${bd.time}</div><div class="card__date">${VENUE.name} · ${VENUE.where} · ${plural(b.guests, 'guest')}</div></div>
+        <button class="btn btn--block" type="button" data-action="manage-booking" aria-haspopup="dialog">View booking</button>`;
+    } else if (b) {
+      const bd = depList()[b.dep];
+      html = `<div><span class="ok" style="font-weight:700;color:var(--success-text)">You’re booked</span><div class="display card__price" style="margin-top:4px">${bd.time} · ${plural(b.guests, 'guest')}</div><div class="card__date">${VOYAGE.dateMed} · ${bd.meal}</div></div>
+        <div class="notice">${ic('card')}<span><b>${money(b.total)}</b> charged to ${VOYAGE.stateroom}${b.credit ? ` after your dining credit` : ''}. 20% service charge added onboard.</span></div>
+        <button class="btn btn--block" type="button" data-action="manage-booking" aria-haspopup="dialog">View or cancel booking</button>`;
+    } else {
+      const d = cur(), onWait = state.wait && state.wait.dep === state.dep;
+      html = `<div><div class="display card__price">${money(d.price)} <span class="card__unit">per guest · ${d.meal.toLowerCase()}</span></div><div class="card__date">${VOYAGE.dateMed} · ${VOYAGE.day}</div></div>
+        <div>${slotsHTML('card')}</div>
+        ${onWait ? waitNotice() : `${guestsRow('card')}${totalsHTML()}`}
+        <div><button class="btn btn--block${p.ghost ? ' btn--ghost' : ''}" type="button" data-action="${p.action}" data-from="card" aria-haspopup="dialog">${onWait ? p.label : d.status === 'waitlist' ? `Join waitlist for ${d.time}` : `Reserve ${d.time}`}</button>
+        <p class="fine" style="margin-top:10px">${d.status === 'waitlist' ? 'No charge to join. You’ll review first.' : `Free cancellation until ${deadline(d)}`}</p></div>`;
+    }
+    bind('card').innerHTML = html;
+  }
+  const waitNotice = () => { const w = state.wait, d = depList()[w.dep];
+    return `<div class="notice">${ic('clock')}<span><b>You’re on the waitlist for ${d.time}</b> (${plural(w.guests, 'guest')}). If a table opens we’ll message you and hold it for ${HOLD_HOURS} hour. Nothing is charged unless you accept.</span></div>`; };
+
+  // Booked: the table as a pass in the navy band + a short "before you dine" list
+  const LEAVES_IN = 70;
+  const leavesIn = () => `${Math.floor(LEAVES_IN / 60)} hr ${LEAVES_IN % 60} min`;
+  const isToday = () => !!(state.booking && state.today);
+  function renderBooked() {
+    const b = state.booking;
+    document.documentElement.dataset.mode = b ? (state.today ? 'today' : 'booked') : 'browse';
+    if (!b) { bind('pass').innerHTML = ''; return; }
+    const d = depList()[b.dep], today = isToday(), meal = d.meal.toLowerCase();
+    const field = (label, value) => `<div class="pass__field"><dt>${label}</dt><dd>${value}</dd></div>`;
+    bind('dine-eyebrow').textContent = today ? 'Today' : 'Before you dine';
+    bind('dine-title').textContent = today ? 'Before you head down' : `Ready for ${meal}`;
+    bind('dine').innerHTML = (today ? ['Smart casual dress', 'Tables are held for 15 minutes', 'Check in at the host stand'] : ['Smart casual dress, jackets optional', 'Arrive a few minutes early', b.credit ? 'Your dining credit is applied' : `${money(b.total)} charged to ${VOYAGE.stateroom}`]).map(t => `<li><span class="tick">${ic('check')}</span><span>${t}</span></li>`).join('');
+    bind('dine-links').innerHTML = `<button class="link" type="button" data-action="sheet" data-kind="menu-${meal}" aria-haspopup="dialog">See the ${meal} menu</button><button class="link" type="button" data-action="sheet" data-kind="dress" aria-haspopup="dialog">What to wear</button>`;
+    bind('pass').innerHTML = `<article class="pass" aria-labelledby="pass-h">
+      <div class="pass__main">
+        <div class="pass__top"><h2 class="pass__eyebrow" id="pass-h">Your table</h2><span class="pass__pill${today ? ' pass__pill--now' : ''}">${today ? `In ${leavesIn()}` : 'Confirmed'}</span></div>
+        <div class="pass__lead"><p class="pass__meet">Table at ${d.time}</p><p class="pass__where">${VENUE.name} · ${VENUE.where}</p><p class="pass__hint">${today ? 'Take the aft elevators to Deck 2. The host stand is on your left.' : 'Check in at the host stand at the entrance'}</p></div>
+        <dl class="pass__fields">${today ? `${field('Guests', b.guests)}${field('Meal', d.meal)}${field('Dress', 'Smart casual')}` : `${field('Date', VOYAGE.dateShort)}${field('Meal', d.meal)}${field('Guests', b.guests)}`}</dl>
+        ${today ? `<div class="pass__actions"><button class="pass__btn" type="button" data-action="sheet" data-kind="directions" aria-haspopup="dialog">${ic('pin')}Directions</button><button class="pass__btn" type="button" data-action="sheet" data-kind="message" aria-haspopup="dialog">Message host</button></div>` : ''}
+      </div>
+      </article>`;
+  }
+
+  function renderPolicies() {
+    const d = state.booking ? depList()[state.booking.dep] : cur();
+    const hours = { k: 'hours', title: 'Hours', sub: 'Lunch on sea days, dinner every night', body: `<div class="info__rows"><div class="info__row"><b>Lunch</b><span>${MEALS.Lunch.hours}</span><small>Sea days · ${money(MEALS.Lunch.price)} per guest</small></div><div class="info__row"><b>Dinner</b><span>${MEALS.Dinner.hours}</span><small>Nightly · ${money(MEALS.Dinner.price)} per guest</small></div></div>` };
+    const cancelBody = `<p>Cancel up to 24 hours before your reservation at no charge.</p><ul><li>Cancellations within 24 hours, or with the dining host onboard, carry a fee of at least 10%.</li><li>If you used a dining credit, cancel before you rebook so the credit returns to your account.</li></ul>`;
+    let items;
+    if (state.booking) {
+      bind('policies-h').textContent = isToday() ? 'If you need anything' : 'Good to know';
+      const late = { k: 'late', title: 'Running late?', sub: 'Tables are held for 15 minutes', body: `<p>Message the dining host in the app and we’ll hold your table for up to 15 minutes. After that it may be released to the waitlist.</p><p><button class="link" type="button" data-action="sheet" data-kind="message" aria-haspopup="dialog">Message the host</button></p>` };
+      items = isToday() ? [late, { k: 'cantmake', title: 'Can’t make it?', sub: 'Within 24 hours, a fee of at least 10% applies', body: `<p>Let the dining host know so your table can be offered to guests on the waitlist.</p>` }, hours]
+        : [{ k: 'cancel', title: 'Changes & cancellation', sub: `Free until ${deadline(d)}`, body: cancelBody }, late, hours];
+    } else {
+      bind('policies-h').textContent = 'Before you book';
+      items = [hours,
+        { k: 'cancel', title: 'Cancellation', sub: noCruise() ? 'Free up to 24 hours before' : `Free until ${deadline(d)}, 24 hours before`, body: cancelBody },
+        { k: 'practical', title: 'Practical details', sub: 'Where it is, what to wear, service charge', body: `<ul><li>${VENUE.name} is on ${VENUE.where.replace(',', ',')}. Take the aft elevators.</li><li>Smart casual dress; jackets are optional.</li><li>Reservations are recommended, up to ${MAX_GUESTS} guests per table.</li><li>A 20% service charge is added onboard.</li><li>Sample menus may change onboard.</li></ul>` }];
+    }
+    const was = $$('[data-bind="policies"] .reveal.is-open').map(r => r.id);
+    bind('policies').innerHTML = items.map(it => { const id = `acc-${it.k}`, open = was.includes(id);
+      return `<div class="acc"><button class="acc__head" type="button" data-action="reveal" data-target="${id}" aria-expanded="${open}" aria-controls="${id}">
+          <span class="acc__titles"><span class="acc__title">${it.title}</span><span class="acc__sub">${it.sub}</span></span>${ic('down', 'icon chev')}</button>
+        <div class="reveal${open ? ' is-open' : ''}" id="${id}"><div><div class="acc__body">${it.body}</div></div></div></div>`; }).join('');
+  }
+
+  function render() {
+    if (noCruise()) { state.booking = null; state.wait = null; state.today = false; }
+    normalizeDep();
+    renderBooked(); renderTrip(); renderKeytiles(); renderTimesSection(); renderBar(); renderCard(); renderPolicies();
+    if (state.sheet === 'select') fillSheet('select');
+    $$('[data-action="proto-trip"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.trip)));
+    $$('[data-action="proto-venue"]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.v === state.venue)); b.disabled = state.trip !== 'onboard'; });
+    $$('[data-action="proto-first"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.first)));
+    $$('[data-action="proto-credits"]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === state.credits)));
+    $$('[data-action="proto-booked"], [data-action="proto-today"]').forEach(b => { b.disabled = noCruise(); });
+    buildPills(); syncBar();
+  }
+
+  /* ======================= Sheet: select → review → result ======================= */
+  let sheetOpener = null;
+  const ctxRow = () => `<div class="ctx">${ic('food')}<div><b>${VENUE.name} · ${VENUE.where}</b><span>${VOYAGE.dateMed} · ${VOYAGE.day}</span></div></div>`;
+  const check = (wait) => `<div class="confirm__mark${wait ? ' confirm__mark--wait' : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>`;
+  const waitSteps = (d, t) => `<ol class="steps">
+      <li><span><b>Join now, free.</b> Nothing is reserved or charged.</span></li>
+      <li><span><b>If a table opens,</b> we message you and hold it for ${HOLD_HOURS} hour.</span></li>
+      <li><span><b>You decide.</b> Accept to reserve and ${money(t.total)} is charged to ${VOYAGE.stateroom}. Ignore it and the hold expires at no cost.</span></li></ol>`;
+  function fillSheet(kind) {
+    const title = bind('sheet-title'), body = bind('sheet-body'), foot = bind('sheet-foot');
+    const d = cur(), t = totals(), wait = d.status === 'waitlist';
+    foot.hidden = true; foot.innerHTML = '';
+    if (kind === 'menu-lunch' || kind === 'menu-dinner') {
+      const meal = kind === 'menu-lunch' ? 'Lunch' : 'Dinner', m = MEALS[meal];
+      title.textContent = `Sample ${meal.toLowerCase()} menu`;
+      body.innerHTML = `<div class="info"><p class="info__lead">${m.days} · ${m.hours}</p><p class="muted">${money(m.price)} per guest · 20% service charge added onboard</p>
+        ${MENUS[meal].map(([g, items]) => `<div class="menu-group"><b>${g}</b><ul>${items.map(x => `<li>${x}</li>`).join('')}</ul></div>`).join('')}
+        <p class="muted" style="font-size:.875rem">This sample may not reflect recent changes or substitutions onboard.</p></div>`;
+      const firstOfMeal = depList().findIndex(x => x.meal === meal && bookable(x));
+      if (!noCruise() && !state.booking && firstOfMeal >= 0) { foot.hidden = false; foot.innerHTML = `<button class="btn btn--block" type="button" data-action="reserve-meal" data-meal="${meal}">Reserve ${meal.toLowerCase()}</button>`; }
+    }
+    if (kind === 'dress') {
+      title.textContent = 'Dress code';
+      body.innerHTML = `<div class="info"><p class="info__lead">${DRESS.name}</p><p>${DRESS.text}</p><ul>${DRESS.tips.map(x => `<li>${x}</li>`).join('')}</ul></div>`;
+    }
+    if (kind === 'directions') {
+      const bd = depList()[state.booking.dep];
+      title.textContent = 'Directions';
+      body.innerHTML = `<div class="info"><p class="info__lead">${VENUE.name} · ${VENUE.where} by ${bd.time}</p>
+        <ol class="steps-plain"><li><span>Take the aft elevators to Deck 2.</span></li><li><span>The host stand is on your left.</span></li><li><span>Tables are held for 15 minutes.</span></li></ol></div>`;
+    }
+    if (kind === 'message') {
+      title.textContent = 'Dining host';
+      body.innerHTML = `<div class="info"><p class="muted">Send a quick message. The host replies in the app.</p>
+        <div class="quick">${['We’re running a few minutes late', 'We can’t make it tonight', 'I have a question about our table'].map(m => `<button type="button" data-action="send-msg" data-msg="${m}">${m}</button>`).join('')}</div>
+        <p class="muted" style="font-size:.875rem">If you’re running late, your table is held for 15 minutes.</p></div>`;
+    }
+    if (kind === 'select') {
+      title.textContent = 'Choose a table';
+      const onWait = state.wait && state.wait.dep === state.dep;
+      body.innerHTML = `<p class="step">Step 1 of 2</p>${ctxRow()}${slotsHTML('sheet')}${onWait ? `<div style="margin-top:12px">${waitNotice()}</div>` : `<div class="calc">${guestsRow('sheet')}${totalsHTML()}</div>`}`;
+      foot.hidden = false;
+      foot.innerHTML = onWait ? `<button class="btn btn--block btn--ghost" type="button" data-action="manage-wait">Waitlist details</button>`
+        : `<button class="btn btn--block" type="button" data-action="review">${wait ? 'Review waitlist request' : `Review · ${plural(state.guests, 'guest')} · ${money(t.total)}`}</button>`;
+    }
+    if (kind === 'review') {
+      title.textContent = wait ? 'Join the waitlist' : 'Review and reserve';
+      const creditSmall = t.used ? 'Covers one guest’s cover charge' : state.credits ? 'Not applied. It stays available until the end of the voyage.' : '';
+      const replaces = state.wait && state.wait.dep !== state.dep && !wait ? `<div class="notice notice--warn" style="margin-top:14px">${ic('clock')}<span>Reserving replaces your waitlist request for ${depList()[state.wait.dep].time}.</span></div>` : '';
+      body.innerHTML = `${state.flow === 2 ? '<p class="step">Step 2 of 2</p>' : ''}${ctxRow()}
+        <div class="rv">
+          <div class="rv__row"><span>Table</span><span><b>${d.time} · ${d.meal.toLowerCase()}${wait ? ' · waitlist' : ''}</b><small>${VOYAGE.dateMed}</small></span></div>
+          <div class="rv__row"><span>Guests</span><span><b>${plural(state.guests, 'guest')}</b><small>Up to ${MAX_GUESTS} per table</small></span></div>
+          <div class="rv__row"><span>Price</span><span><b>${money(t.sub)}</b><small>${state.guests} × ${money(d.price)} per guest · 20% service charge added onboard</small></span></div>
+          ${state.credits ? `<div class="rv__row${t.used ? ' rv__row--credit' : ''}"><span>Credit</span><span class="rv__credit"><span><b>${t.used ? money(-t.credit) : '$0'}</b><small>${creditSmall}</small></span><button class="switch" type="button" role="switch" aria-checked="${state.useCredits}" aria-label="Use dining credit" data-action="credits" data-ctx="sheet"></button></span></div>` : ''}
+          <div class="rv__row rv__row--total"><span>${wait ? 'If you accept' : 'Total'}</span><span><b>${money(t.total)}</b><small>${wait ? `Charged to ${VOYAGE.stateroom} only if you accept` : `Charged to your onboard account, ${VOYAGE.stateroom}, when you reserve`}</small></span></div>
+        </div>
+        ${wait ? waitSteps(d, t) : ''}
+        ${replaces}
+        <button class="link" type="button" data-action="select" style="margin-top:14px;padding:8px 0">Change time or party size</button>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block" type="button" data-action="confirm">${wait ? 'Join waitlist · no charge now' : t.total ? `Reserve and charge ${money(t.total)}` : 'Reserve · covered by your credit'}</button>
+        <p class="fine">${wait ? 'Nothing is charged unless you accept a table.' : `<b>Free cancellation until ${deadline(d)}</b>, 24 hours before. After that, a fee of at least 10% applies.`}<br>Prototype: nothing is booked or charged.</p>`;
+    }
+    if (kind === 'done') {
+      const b = state.booking, bd = depList()[b.dep];
+      title.textContent = 'Reserved';
+      body.innerHTML = `<div class="confirm">${check()}<h3 class="display confirm__title">Your table is reserved</h3><p class="muted">It’s on your ${VOYAGE.day} plan. We’ll remind you an hour before.</p>
+        <div class="confirm__card"><b>${VOYAGE.dateMed} · ${bd.time}</b><span>${VENUE.name} · ${VENUE.where}</span><span>${plural(b.guests, 'guest')} · ${money(b.total)} charged to ${VOYAGE.stateroom}${b.credit ? ' (dining credit applied)' : ''}</span><span>Free cancellation until ${deadline(bd)}</span></div></div>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block" type="button" data-action="close-sheet">Done</button><button class="btn btn--ghost btn--block" type="button" data-action="calendar">${ic('cal')}Add to calendar</button>`;
+    }
+    if (kind === 'waitlisted' || kind === 'wait') {
+      const w = state.wait, wd = depList()[w.dep], wt = totals(wd, w.guests);
+      title.textContent = kind === 'waitlisted' ? 'On the waitlist' : 'Your waitlist request';
+      const alt = depList().findIndex(x => bookable(x) && x.meal === wd.meal);
+      body.innerHTML = `<div class="confirm">${check(true)}<h3 class="display confirm__title">You’re on the list for ${wd.time}</h3><p class="muted">${plural(w.guests, 'guest')} · ${VOYAGE.dateMed}. Nothing has been charged.</p></div>
+        <ol class="steps">
+          <li><span><b>We’ll message you</b> in the app if a table opens.</span></li>
+          <li><span><b>We hold it for ${HOLD_HOURS} hour.</b></span></li>
+          <li><span><b>Accept to reserve.</b> Only then is ${money(wt.total)} charged to ${VOYAGE.stateroom}.</span></li></ol>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block" type="button" data-action="close-sheet">Done</button>
+        ${alt >= 0 ? `<button class="btn btn--ghost btn--block" type="button" data-action="reserve-at" data-i="${alt}">Reserve ${DEPS[alt].time} instead</button>` : ''}
+        <button class="btn btn--danger btn--block" type="button" data-action="leave-wait">Leave waitlist</button>`;
+    }
+    if (kind === 'booking') {
+      const b = state.booking, bd = depList()[b.dep];
+      title.textContent = 'Your reservation';
+      body.innerHTML = `${ctxRow()}<div class="rv">
+          <div class="rv__row"><span>Table</span><span><b>${bd.time} · ${bd.meal.toLowerCase()}</b><small>${VOYAGE.dateMed}</small></span></div>
+          <div class="rv__row"><span>Guests</span><span><b>${plural(b.guests, 'guest')}</b></span></div>
+          <div class="rv__row rv__row--total"><span>Charged</span><span><b>${money(b.total)}</b><small>To ${VOYAGE.stateroom}${b.credit ? ' · dining credit applied' : ''} · 20% service charge added onboard</small></span></div></div>
+        <div class="notice policy-box">${ic('cal')}<span><b>Free cancellation until ${deadline(bd)}.</b> After that, a fee of at least 10% applies.</span></div>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block" type="button" data-action="calendar">${ic('cal')}Add to calendar</button><button class="btn btn--danger btn--block" type="button" data-action="cancel-ask">Cancel booking</button>
+        <button class="link" type="button" data-action="new-booking" style="align-self:center;padding:6px 0">Add a new booking</button>`;
+    }
+    if (kind === 'cancel') {
+      const b = state.booking;
+      title.textContent = 'Cancel booking?';
+      body.innerHTML = `<div class="confirm"><h3 class="display confirm__title">Cancel your ${depList()[b.dep].time} table?</h3>
+        <p class="muted">You’re within the free cancellation window. ${money(b.total)} goes back to your onboard account${b.used ? ' and your dining credit is returned' : ''}.</p></div>`;
+      foot.hidden = false;
+      foot.innerHTML = `<button class="btn btn--block btn--solid-danger" type="button" data-action="cancel-booking">Yes, cancel booking</button><button class="btn btn--ghost btn--block" type="button" data-action="manage-booking">Keep booking</button>`;
+    }
+  }
+
+  function lockPage(on) {
+    document.documentElement.classList.toggle('is-locked', on);
+    ['#page', '.booking-bar', '#compact'].forEach(s => { const el = $(s); if (el) el.inert = on; });
+  }
+  function openSheet(kind, opener) {
+    if (!state.sheet) sheetOpener = opener || document.activeElement;
+    state.sheet = kind; fillSheet(kind);
+    $('#sheet-layer').classList.add('is-open'); lockPage(true);
+    bind('sheet-body').scrollTop = 0;
+    requestAnimationFrame(() => $('.sheet__close').focus());
+  }
+  function swapSheet(kind) { state.sheet = kind; fillSheet(kind); bind('sheet-body').scrollTop = 0; bind('sheet-title').focus(); }
+  function closeSheet() {
+    state.sheet = null; $('#sheet-layer').classList.remove('is-open');
+    if (!lb.classList.contains('is-open')) lockPage(false);
+    const back = sheetOpener && document.contains(sheetOpener) ? sheetOpener : $(`[data-action="${primary().action}"]`, deskMQ.matches ? bind('card') : bind('bar'));
+    back && back.focus({ preventScroll: true });
+    sheetOpener = null;
+  }
+
+  let toastT;
+  function toast(msg) { const t = bind('toast'); t.textContent = msg; t.classList.add('is-on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('is-on'), 2800); }
+  const say = (msg) => { bind('live').textContent = ''; setTimeout(() => bind('live').textContent = msg, 30); };
+
+  function downloadICS() {
+    const b = state.booking; if (!b) return; const d = depList()[b.dep];
+    const t = (m) => `${VOYAGE.ymd}T${String(Math.floor(m / 60)).padStart(2, '0')}${String(m % 60).padStart(2, '0')}00`;
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Dining prototype//EN', 'BEGIN:VEVENT', `UID:pinnacle-${b.dep}-${VOYAGE.ymd}@prototype`, 'DTSTAMP:20261006T000000Z',
+      `DTSTART:${t(d.min)}`, `DTEND:${t(d.min + 90)}`, `SUMMARY:${VENUE.name} · ${d.meal} (sample)`,
+      `LOCATION:${VENUE.name}\\, ${VENUE.where.replace(',', '\\,')}`, `DESCRIPTION:${plural(b.guests, 'guest')}. Smart casual. Prototype booking - not real.`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'pinnacle-grill-2026-12-13.ics';
+    document.body.appendChild(a); a.click(); a.remove(); toast('Calendar file downloaded');
+  }
+
+  /* ======================= Expand in place ======================= */
+  function toggleReveal(btn) {
+    const panel = document.getElementById(btn.dataset.target), open = btn.getAttribute('aria-expanded') !== 'true';
+    panel.classList.toggle('is-open', open);
+    $$(`[aria-controls="${btn.dataset.target}"]`).forEach(b => {
+      b.setAttribute('aria-expanded', String(open));
+      if (b.dataset.open) $('span', b).textContent = open ? b.dataset.open : b.dataset.closed;
+    });
+  }
+
+  /* ======================= Sticky jump nav ======================= */
+  const jump = $('#jump'), track = $('#jump-track'), compact = $('#compact'), compactBack = $('.compact-header__back', compact);
+  const PILLS = () => [['dine', isToday() ? 'Today' : 'Before you dine'], ['why', 'At the table'], ['times', 'Price & times'], ['ships', 'Ships'], ['policies', isToday() ? 'Help' : state.booking ? 'Good to know' : 'Before you book']];
+  const visibleSections = () => $$('[data-section]').filter(s => s.offsetParent !== null);
+  let spyLock = 0, activeId = 'why';
+  function buildPills() {
+    const ids = visibleSections().map(s => s.id);
+    const want = PILLS().filter(([id]) => ids.includes(id));
+    const key = want.map(p => p.join(':')).join();
+    if (track.dataset.ids === key) return;
+    track.dataset.ids = key;
+    if (!want.some(([id]) => id === activeId) && want[0]) activeId = want[0][0];
+    track.innerHTML = want.map(([id, label]) => `<a class="jump__pill" href="#${id}" data-action="goto" data-target="${id}" aria-current="${id === activeId}">${label}</a>`).join('');
+    updateFade();
+  }
+  function updateFade() { jump.classList.toggle('has-more', track.scrollWidth - track.clientWidth - track.scrollLeft > 4); }
+  track.addEventListener('scroll', updateFade, { passive: true });
+  function setActive(id) {
+    activeId = id;
+    $$('.jump__pill', track).forEach(p => {
+      const on = p.dataset.target === id; p.setAttribute('aria-current', String(on));
+      if (on) { const l = p.offsetLeft - 20, r = p.offsetLeft + p.offsetWidth + 20; if (l < track.scrollLeft || r > track.scrollLeft + track.clientWidth) track.scrollTo({ left: l, behavior: reduced() ? 'auto' : 'smooth' }); }
+    });
+  }
+  function goTo(id) {
+    const el = document.getElementById(id); if (!el) return;
+    const top = el.getBoundingClientRect().top + scrollY - (deskMQ.matches ? 60 : compact.offsetHeight || 48) - jump.offsetHeight + 1;
+    if (el.dataset.section !== undefined) { setActive(id); spyLock = Date.now() + 900; }
+    window.scrollTo({ top: Math.max(0, top), behavior: reduced() ? 'auto' : 'smooth' });
+  }
+  function onScroll() {
+    const ch = compact.offsetHeight;
+    const stuck = jump.getBoundingClientRect().top <= ch + 0.5 && scrollY > 0;
+    jump.classList.toggle('is-stuck', stuck); compact.classList.toggle('is-visible', stuck);
+    compact.setAttribute('aria-hidden', String(!stuck)); compactBack.tabIndex = stuck ? 0 : -1;
+    if (Date.now() < spyLock) return;
+    const line = ch + jump.offsetHeight + 24, vis = visibleSections();
+    let active = vis[0] ? vis[0].id : 'why';
+    for (const s of vis) if (s.getBoundingClientRect().top <= line) active = s.id;
+    if (active !== activeId) setActive(active);
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('scrollend', () => { spyLock = 0; onScroll(); });
+
+  /* ======================= Events ======================= */
+  function pickDep(i, ctx) {
+    const list = depList(), d = list[i]; if (!d || d.status === 'soldout') return;
+    const changed = i !== state.dep;
+    state.dep = i; render();
+    if (changed) say(`${d.meal} at ${d.time} selected. ${d.status === 'waitlist' ? 'Waitlist. Free to join; you are only charged if a table opens and you accept it.' : statusShort(d) + '.'} ${money(d.price)} per guest.`);
+    const root = ctx === 'sheet' ? bind('sheet-body') : ctx === 'card' ? bind('card') : bind('times-body');
+    const next = $(`.slot[data-i="${i}"]`, root); next && next.focus({ preventScroll: true });
+  }
+  function startReserve(from, el) {
+    normalizeDep();
+    if (from === 'card') { state.flow = 1; openSheet('review', el); }
+    else { state.flow = 2; state.sheet ? swapSheet('select') : openSheet('select', el); }
+  }
+
+  document.addEventListener('click', (e) => {
+    const slot = e.target.closest('.slot');
+    if (slot) { pickDep(+slot.dataset.i, slot.dataset.ctx); return; }
+    const el = e.target.closest('[data-action]'); if (!el) return;
+    const a = el.dataset.action;
+    if (el.tagName === 'A') e.preventDefault();
+    switch (a) {
+      case 'goto': goTo(el.dataset.target); break;
+      case 'reveal': toggleReveal(el); break;
+      case 'reserve': if (state.booking) { state.sheet ? swapSheet('booking') : openSheet('booking', el); } else startReserve(el.dataset.from, el); break;
+      case 'reserve-meal': { const i = depList().findIndex(x => x.meal === el.dataset.meal && bookable(x)); if (i >= 0) state.dep = el.dataset.meal === 'Dinner' && bookable(depList()[3]) ? 3 : i; render(); state.flow = 2; swapSheet('select'); break; }
+      case 'select': state.flow = 2; state.sheet ? swapSheet('select') : openSheet('select', el); break;
+      case 'reserve-at': state.dep = +el.dataset.i; normalizeDep(); render(); state.flow = 2; state.sheet ? swapSheet('select') : openSheet('select', el); break;
+      case 'review': swapSheet('review'); break;
+      case 'guests': {
+        const before = state.guests; state.guests = Math.max(1, Math.min(MAX_GUESTS, state.guests + +el.dataset.d));
+        render(); if (state.sheet === 'review') fillSheet('review');
+        say(state.guests === before ? `Maximum ${MAX_GUESTS} guests per table.` : `${plural(state.guests, 'guest')}. Total ${money(totals().total)}.`);
+        const root = el.dataset.ctx === 'sheet' ? bind('sheet-body') : bind('card');
+        const f = $(`.stepper [data-d="${el.dataset.d}"]`, root); (f && !f.disabled ? f : $('.stepper output', root))?.focus();
+        break;
+      }
+      case 'credits': {
+        state.useCredits = !state.useCredits; render(); if (state.sheet === 'review') fillSheet('review');
+        say(state.useCredits ? `Credit applied. Total ${money(totals().total)}.` : `Credit not applied. Total ${money(totals().total)}.`);
+        $('.switch', bind('sheet-body'))?.focus();
+        break;
+      }
+      case 'notify': { const i = +el.dataset.i; state.notify[i] = !state.notify[i]; render(); toast(state.notify[i] ? `We’ll message you if ${DEPS[i].time} opens up` : 'Notification turned off'); break; }
+      case 'confirm': {
+        el.disabled = true; const wait = cur().status === 'waitlist'; el.textContent = wait ? 'Joining…' : 'Reserving…';
+        setTimeout(() => {
+          if (wait) { state.wait = { dep: state.dep, guests: state.guests }; render(); swapSheet('waitlisted'); say('You are on the waitlist. Nothing has been charged.'); }
+          else { const t = totals(); state.booking = { dep: state.dep, guests: state.guests, ...t }; state.credits -= t.used; if (state.wait) state.wait = null; render(); swapSheet('done'); say('Reserved.'); }
+        }, reduced() ? 0 : 700);
+        break;
+      }
+      case 'manage-booking': state.sheet ? swapSheet('booking') : openSheet('booking', el); break;
+      case 'new-booking': toast('A second reservation would start here (prototype keeps one booking)'); break;
+      case 'manage-wait': state.sheet ? swapSheet('wait') : openSheet('wait', el); break;
+      case 'leave-wait': state.wait = null; closeSheet(); render(); toast('You left the waitlist'); break;
+      case 'cancel-ask': swapSheet('cancel'); break;
+      case 'cancel-booking': { const b = state.booking; state.today = false; state.credits += b.used; state.dep = b.dep; state.booking = null; closeSheet(); render(); toast(`Booking cancelled · ${money(b.total)} refunded to your onboard account`); break; }
+      case 'calendar': downloadICS(); break;
+      case 'close-sheet': { const wasDone = state.sheet === 'done'; closeSheet(); if (wasDone) setTimeout(() => window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' })); break; }
+      case 'sheet': state.sheet ? swapSheet(el.dataset.kind) : openSheet(el.dataset.kind, el); break;
+      case 'send-msg': closeSheet(); toast('Message sent to the dining host (prototype)'); break;
+      case 'gal-go': showSlide(+el.dataset.i); schedule(); break;
+      case 'slideshow': setPaused(!userPaused); break;
+      case 'back': if (history.length > 1 && document.referrer.startsWith(location.origin)) history.back(); else toast('In the app, this returns to Dining'); break;
+      case 'lightbox': openLightbox(+el.dataset.i || 0, el); break;
+      case 'close-lightbox': closeLightbox(); break;
+      case 'lb-prev': lbTo(lbIndex - 1); break;
+      case 'lb-next': lbTo(lbIndex + 1); break;
+      case 'proto-toggle': { const p = $('#proto-panel'); p.hidden = !p.hidden; el.setAttribute('aria-expanded', String(!p.hidden)); break; }
+      case 'proto-trip': state.trip = el.dataset.v; render(); break;
+      case 'proto-venue': state.venue = el.dataset.v; render(); break;
+      case 'proto-first': state.first = el.dataset.v; render(); break;
+      case 'proto-credits': if (!state.booking) { state.credits = +el.dataset.v; render(); } else toast('Cancel the booking first'); break;
+      case 'proto-today': case 'proto-booked': {
+        if (noCruise()) break;
+        state.today = a === 'proto-today';
+        if (!state.booking) { normalizeDep(); if (!bookable(cur())) state.dep = defaultDep(); const t = totals(); state.booking = { dep: state.dep, guests: state.guests, ...t }; state.credits -= t.used; state.wait = null; }
+        render(); window.scrollTo({ top: 0 }); break;
+      }
+      case 'proto-reset': state.today = false; state.booking = null; state.wait = null; state.notify = {}; state.credits = 1; state.useCredits = true; state.dep = defaultDep(); state.guests = 2; render(); toast('Prototype reset'); break;
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { if (lb.classList.contains('is-open')) closeLightbox(); else if (state.sheet) closeSheet(); return; }
+    if (lb.classList.contains('is-open') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { e.preventDefault(); lbTo(lbIndex + (e.key === 'ArrowRight' ? 1 : -1)); return; }
+    // Keep focus inside an open dialog
+    if (e.key === 'Tab') {
+      const box = lb.classList.contains('is-open') ? lb : state.sheet ? $('.sheet') : null;
+      if (box) { const f = $$('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])', box).filter(x => x.offsetParent !== null);
+        if (f.length) { const first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } } }
+    }
+    const slot = e.target.closest('.slot');
+    if (slot && ['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].includes(e.key)) {
+      e.preventDefault();
+      const dir = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : -1, list = depList();
+      let i = state.dep; for (let k = 0; k < list.length; k++) { i = (i + dir + list.length) % list.length; if (list[i].status !== 'soldout') break; }
+      pickDep(i, slot.dataset.ctx);
+    }
+    if (slot && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); pickDep(+slot.dataset.i, slot.dataset.ctx); }
+  });
+
+  /* ======================= Prototype controls ======================= */
+  bind('proto-trip').innerHTML = [['precruise', 'Pre-cruise'], ['onboard', 'Onboard'], ['nocruise', 'No cruise']].map(([v, l]) => `<button type="button" data-action="proto-trip" data-v="${v}">${l}</button>`).join('');
+  bind('proto-venue').innerHTML = [['open', 'Open'], ['closed', 'Closed']].map(([v, l]) => `<button type="button" data-action="proto-venue" data-v="${v}">${l}</button>`).join('');
+  bind('proto-first').innerHTML = [['available', 'Available'], ['few', 'Few left'], ['waitlist', 'Waitlist'], ['soldout', 'Full']].map(([v, l]) => `<button type="button" data-action="proto-first" data-v="${v}">${l}</button>`).join('');
+  bind('proto-credits').innerHTML = [[1, '1 credit'], [0, 'None']].map(([v, l]) => `<button type="button" data-action="proto-credits" data-v="${v}">${l}</button>`).join('');
+
+  // Keep page padding and toasts clear of the booking bar at any text size
+  const barEl = $('.booking-bar');
+  function syncBar() { document.documentElement.style.setProperty('--bar-h', (getComputedStyle(barEl).display === 'none' ? 0 : barEl.offsetHeight) + 'px'); }
+  new ResizeObserver(syncBar).observe(barEl);
+  addEventListener('resize', () => { syncBar(); buildPills(); updateFade(); });
+  deskMQ.addEventListener('change', () => { track.dataset.ids = ''; buildPills(); });
+
+  /* ======================= Boot ======================= */
+  state.dep = defaultDep();
+  if (!noCruise() && (q.get('booked') === '1' || state.today)) { const t = totals(); state.booking = { dep: state.dep, guests: state.guests, ...t }; state.credits -= t.used; }
+  render();
+  onScroll();
+})();
+</script>
+</body>
+</html>
