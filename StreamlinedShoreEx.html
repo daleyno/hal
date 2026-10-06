@@ -3,11 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#021E46">
+<!-- Borderless on iPhone: opened from the Home Screen it runs standalone with a translucent status bar, so the
+     hero photo fills the top edge (layout pads itself with env(safe-area-inset-*)). In a Safari tab the bar is
+     tinted to the top of the first hero photo. -->
+<meta name="theme-color" content="#4B7D9C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Streamlined Shore Ex">
+<link rel="manifest" href="StreamlinedShoreEx.webmanifest">
 <title>Streamlined Shore Ex</title>
 <!--
   Shore Excursion detail — Streamlined Shore Ex
@@ -76,63 +80,176 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 .muted { color: var(--neutral-70); }
 .ok { display: inline-flex; align-items: center; gap: 6px; }
 .ok::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex: none; }
+.ok--now::before { background: var(--mes-orange); }
 
-/* ================= Hero ================= */
-/* Shorter than ShoreEx on phones: the photo sets the mood, the navy band below carries the decision facts */
-.hero { position: relative; height: calc(clamp(400px, 56svh, 520px) + var(--safe-top)); background: var(--hal-blue-dark); color: var(--white); overflow: hidden; }
+/* ================= Hero (ShoreEx slideshow, accurate photos only) ================= */
+/* Slow fade + pan/zoom between photos; the bottom resolves to solid navy so the title and key facts sit on one surface */
+.hero { position: relative; height: calc(clamp(430px, 60svh, 540px) + var(--safe-top)); background: var(--hal-blue-dark); color: var(--white); overflow: hidden; }
 .gallery { position: absolute; inset: 0; overflow: hidden; }
 .slide { position: absolute; inset: 0; margin: 0; opacity: 0; transition: opacity 1800ms var(--ease); overflow: hidden; }
 .slide.is-active { opacity: 1; }
-.slide img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; transform: scale(var(--s0, 1.06)) translate(var(--fx, 0), var(--fy, 0)); transform-origin: var(--ox, 50%) var(--oy, 50%); will-change: transform; }
+.slide img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, center); transform: scale(var(--s0, 1.06)) translate(var(--fx, 0), var(--fy, 0)); transform-origin: var(--ox, 50%) var(--oy, 50%); will-change: transform; }
 .slide.is-kb img { animation: kenburns 9000ms linear forwards; }
 @keyframes kenburns { from { transform: scale(var(--s0, 1.06)) translate(var(--fx, 0), var(--fy, 0)); } to { transform: scale(var(--s1, 1.18)) translate(var(--tx, 0), var(--ty, 0)); } }
+.hero__blur { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; pointer-events: none; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 45%, #000 85%); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 45%, #000 85%); }
 .hero__scrim { position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(rgba(3,15,31,0.45) 0, rgba(3,15,31,0) 120px), linear-gradient(rgba(2,30,70,0) 34%, rgba(2,30,70,0.45) 56%, rgba(2,30,70,0.88) 80%, var(--hal-blue-dark) 100%); }
-/* Progressive blur: the photo softens as it hands off to the navy band (from ShoreEx) */
-.hero__blur { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; pointer-events: none; -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 45%, #000 80%); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 45%, #000 80%); }
-.hero__top { position: absolute; left: 0; right: 0; top: calc(var(--safe-top) + 12px); padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
-.round-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.94); color: var(--hal-blue); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(3,15,31,0.18); transition: transform var(--fast) var(--ease); }
-.round-btn:active { transform: scale(0.96); }
+  background: linear-gradient(rgba(3,15,31,0.42) 0, rgba(3,15,31,0) 130px), linear-gradient(rgba(2,30,70,0) 40%, rgba(2,30,70,0.5) 62%, rgba(2,30,70,0.9) 84%, var(--hal-blue-dark) 100%); }
+.hero__top { position: absolute; z-index: 1; left: 0; right: 0; top: calc(var(--safe-top) + 12px); padding: 0 16px; display: flex; justify-content: space-between; align-items: center; }
+.round-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.94); color: var(--hal-blue); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(3,15,31,0.18); }
 .round-btn .icon { width: 1.375rem; height: 1.375rem; stroke-width: 2; }
-/* Slideshow controls live top-right, out of the title's way */
-.hero__ctrl { display: flex; align-items: center; padding: 0 4px; border-radius: var(--radius-xl); background: rgba(3,15,31,0.42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.hero__ctrl { display: flex; align-items: center; padding: 0 4px; border-radius: var(--radius-xl); background: rgba(3,15,31,0.42); }
 .dots { display: flex; }
 .dots button { width: 26px; height: 32px; display: flex; align-items: center; justify-content: center; }
 .dots button::before { content: ""; width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.55); transition: width var(--base) var(--ease), background var(--base) var(--ease); }
 .dots button[aria-current="true"]::before { width: 18px; background: var(--white); }
 .hero__pause { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: rgba(255,255,255,0.85); }
 .hero__pause .icon { width: 0.875rem; height: 0.875rem; stroke-width: 2.4; }
-.hero__body { position: absolute; left: 0; right: 0; bottom: 0; padding-bottom: 18px; }
-.status-chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 5px 12px 5px 10px; border-radius: var(--radius-xl); background: var(--white); color: var(--hal-blue); font-size: 0.875rem; font-weight: 700; line-height: 1.3; text-shadow: none; box-shadow: 0 2px 8px rgba(3,15,31,0.18); margin-bottom: 4px; }
-.status-chip__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mes-orange); flex: none; }
-.status-chip[data-tone="ok"] .status-chip__dot { background: var(--success); }
-.status-chip[data-tone="calm"] .status-chip__dot { background: var(--blue-3); }
-/* Key facts: one quiet line of icon + words under the title — no boxes, no grid */
-.hero__facts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 6px; font-size: 0.9375rem; color: rgba(255,255,255,0.92); }
-.hero__facts li { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
-.hero__facts .icon { width: 1.125rem; height: 1.125rem; color: var(--dutch-creme); stroke-width: 1.8; }
-.hero__facts a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,0.55); }
-.hero__body .container { display: flex; flex-direction: column; gap: 6px; text-shadow: 0 1px 12px rgba(2,30,70,0.5); }
+.hero__body { position: absolute; left: 0; right: 0; bottom: 0; padding-bottom: 20px; }
+.hero__body .container { display: flex; flex-direction: column; gap: 8px; text-shadow: 0 1px 12px rgba(2,30,70,0.5); }
 .hero__eyebrow { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.9); }
-.hero__title { font-family: var(--font-display); font-size: 1.875rem; line-height: 1.1; letter-spacing: -0.01em; text-wrap: balance; }
+.hero__title { font-family: var(--font-display); font-weight: 400; font-size: 2rem; line-height: 1.1; letter-spacing: -0.01em; text-wrap: balance; }
+.hero__lead { font-size: clamp(0.9375rem, 4.4vw, 1.0625rem); line-height: 1.45; color: rgba(255,255,255,0.9); max-width: 34rem; text-wrap: pretty; }
 
-/* ================= Why go: its own navy band ================= */
-.why { position: relative; isolation: isolate; color: var(--white); padding: 4px 0 36px; clip-path: inset(-1px -100vmax 0); }
-.why::before { content: ""; position: absolute; top: -1px; bottom: 0; left: -100vmax; right: -100vmax; background: var(--hal-blue-dark); z-index: -1; }
-.why__rule { border: 0; height: 1px; margin: 0 0 24px; background: rgba(255,255,255,0.16); }
-.why .eyebrow { color: var(--dutch-creme); }
-.why__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-.why__title { font-size: 1.625rem; color: var(--white); }
-.moments { display: flex; flex-direction: column; gap: 18px; }
-.moment { width: 100%; display: grid; grid-template-columns: 76px 1fr; gap: 16px; align-items: start; text-align: left; color: inherit; border-radius: 16px; }
-.moment__copy { display: flex; flex-direction: column; min-width: 0; }
-.moment__title { font-family: var(--font-display); font-size: 1.25rem; line-height: 1.2; color: var(--white); text-wrap: balance; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: rgba(255,255,255,0.55); }
-.moment:hover .moment__title { text-decoration-color: var(--white); }
-.moment__text { font-size: 0.9375rem; color: var(--on-navy); margin-top: 4px; text-wrap: pretty; }
-.thumb { width: 76px; aspect-ratio: 1; border-radius: 16px; overflow: hidden; display: block; box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 4px 12px rgba(0,0,0,0.3); transition: transform var(--fast) var(--ease); }
-.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.moment:hover .thumb { transform: scale(1.02); }
+/* ================= Navy band: key-fact tiles, then Why go ================= */
+.band { position: relative; isolation: isolate; color: var(--white); clip-path: inset(-1px -100vmax 0); }
+.band::before { content: ""; position: absolute; top: -1px; bottom: 0; left: -100vmax; right: -100vmax; background: var(--hal-blue-dark); z-index: -1; }
+/* Tiles: a quiet lift off the navy (white at 7%). Strict format: label, value, note — one line each.
+   Tiles with more detail are buttons that open a bottom drawer; the underlined value marks them as tappable. */
+.keytiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 4px 0 36px; }
+.keytiles > li { display: flex; min-width: 0; }
+.keytile { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 16px; border-radius: var(--radius-m); background: rgba(255,255,255,0.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); min-width: 0; text-align: left; color: inherit; }
+button.keytile { transition: background var(--fast) var(--ease); }
+button.keytile:hover { background: rgba(255,255,255,0.11); }
+.keytile .icon { color: var(--dutch-creme); }
+.keytile__text { display: flex; flex-direction: column; min-width: 0; }
+/* Copy is written to fit one line each; if a narrow screen can't, it wraps rather than hiding a restriction */
+.keytile__label, .keytile__value, .keytile__sub { display: block; overflow-wrap: anywhere; }
+.keytile__label { font-size: 0.8125rem; color: rgba(255,255,255,0.72); }
+.keytile__value { font-weight: 700; font-size: 1.0625rem; line-height: 1.35; color: var(--white); }
+button.keytile .keytile__value { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; text-decoration-color: rgba(255,255,255,0.55); }
+.keytile__sub { font-size: 0.8125rem; line-height: 1.4; color: rgba(255,255,255,0.72); margin-top: 2px; }
+@media (max-width: 359px) { :root { --page-pad: 16px; } .keytiles { gap: 8px; } .keytile { padding: 12px 10px 14px; } .keytile__value { font-size: 0.9375rem; } .keytile__label, .keytile__sub { font-size: 0.75rem; } }
+
+/* ================= Booked mode: the page shifts from inspiring to informing ================= */
+/* "booked" content also serves the day-of view ("today") */
+html[data-mode="booked"] [data-show="browse"], html[data-mode="today"] [data-show="browse"], html[data-mode="browse"] [data-show="booked"] { display: none !important; }
+/* Your plan — boarding-pass card on the navy, same surface as the key-fact tiles */
+[data-bind="pass"] { padding: 4px 0 36px; } /* padding, not margin, so the navy band can't collapse away */
+.pass { overflow: hidden; /* clips the notches so only the inward half shows */ margin: 0; border-radius: var(--radius-m); background: rgba(255,255,255,0.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+.pass__main { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+.pass__top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.pass__eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dutch-creme); }
+.pass__pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-xl); background: rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 700; color: var(--white); }
+.pass__pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #4ED36A; }
+.pass__pill--now::before { background: var(--mes-orange); }
+.pass__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pass__actions .pass__btn { justify-content: center; padding: 0 10px; }
+@media (min-width: 640px) { .pass__actions { display: flex; } .pass__actions .pass__btn { padding: 0 16px; } }
+@media (max-width: 359px) { .pass__fields { grid-template-columns: repeat(3, auto); justify-content: space-between; } .pass__field dd { white-space: nowrap; } }
+.pass__lead { display: flex; flex-direction: column; gap: 2px; }
+.pass__meet { font-family: var(--font-display); font-weight: 400; font-size: 1.75rem; line-height: 1.15; color: var(--white); }
+.pass__where { font-size: 1.0625rem; font-weight: 700; color: var(--white); margin-top: 4px; }
+.pass__hint { font-size: 0.8125rem; color: rgba(255,255,255,0.72); }
+/* Secondary facts: one quiet row under a hairline */
+.pass__fields { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding-top: 16px; border-top: 1.5px dashed rgba(255,255,255,0.22); }
+/* Ticket notches where the tear line meets the card edges (card padding 18px + half the 18px notch) */
+.pass__fields::before, .pass__fields::after { content: ""; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--hal-blue-dark); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+.pass__fields::before { left: -27px; }
+.pass__fields::after { right: -27px; }
+.pass__field { margin: 0; min-width: 0; }
+.pass__field--wide { grid-column: 1 / -1; }
+.pass__field dt, .pass__label { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+.pass__field dd { margin: 2px 0 0; font-size: 0.9375rem; font-weight: 700; color: var(--white); font-variant-numeric: tabular-nums; }
+.pass__field small { display: block; font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.72); margin-top: 2px; }
+/* Perforation with side notches cut to the navy */
+.pass__perf { position: relative; height: 0; margin: 0 18px; border-top: 1.5px dashed rgba(255,255,255,0.22); }
+.pass__perf::before, .pass__perf::after { content: ""; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--hal-blue-dark); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+.pass__perf::before { left: -28px; }
+.pass__perf::after { right: -28px; }
+.pass__stub { padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; }
+.pass__list { display: flex; flex-direction: column; gap: 6px; }
+.pass__list li { display: flex; align-items: center; gap: 10px; font-size: 0.9375rem; color: rgba(255,255,255,0.92); }
+.pass__list .icon { width: 1rem; height: 1rem; stroke-width: 2.4; color: var(--dutch-creme); }
+.pass__foot { padding-top: 4px; }
+.pass__note { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; color: rgba(255,255,255,0.72); }
+.pass__note .icon { width: 1rem; height: 1rem; }
+.pass__btn { min-height: 40px; padding: 0 16px; border-radius: var(--radius-xl); font-size: 0.875rem; font-weight: 700; color: var(--white); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.7); display: inline-flex; align-items: center; gap: 6px; }
+.pass__btn:hover { background: rgba(255,255,255,0.1); }
+.pass__btn .icon { width: 1rem; height: 1rem; stroke-width: 2; }
+
+/* What to bring — its own checklist section (booked + day of) */
+.section__eyebrow-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.weather { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9375rem; color: var(--orange-text); font-variant-numeric: tabular-nums; }
+.weather .icon { width: 1.375rem; height: 1.375rem; stroke-width: 1.8; color: var(--mes-orange); }
+.bring__note { display: flex; align-items: center; gap: 8px; font-size: 0.9375rem; color: var(--neutral-70); margin: -4px 0 12px; }
+.bring__note .icon { width: 1.125rem; height: 1.125rem; color: var(--hal-blue); }
+.checklist { display: flex; flex-direction: column; gap: 4px; }
+.checklist li { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: center; padding: 8px 0; color: var(--neutral-90); }
+.checklist .tick { width: 24px; height: 24px; border-radius: 50%; background: var(--success-soft); color: var(--success-text); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(23,159,50,0.25); }
+.checklist .tick .icon { width: 0.875rem; height: 0.875rem; stroke-width: 3; }
+
+/* Your day — step by step, clock times for the booked departure */
+.tl-note { font-size: 0.875rem; color: var(--neutral-70); margin: -6px 0 16px; }
+.tl { display: grid; grid-template-columns: 5rem 18px 1fr; gap: 0 12px; }
+.tl__time { font-weight: 700; color: var(--hal-blue); font-variant-numeric: tabular-nums; padding: 1px 0 18px; white-space: nowrap; }
+.tl__rail { position: relative; display: flex; justify-content: center; }
+.tl__rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--blue-1); }
+.tl:first-child .tl__rail::before { top: 9px; }
+.tl:last-child .tl__rail::before { bottom: calc(100% - 9px); }
+.tl__rail::after { content: ""; position: relative; margin-top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--white); border: 2px solid var(--hal-blue); }
+.tl__what { padding: 0 0 18px; }
+.tl__what b { display: block; color: var(--neutral-90); }
+.tl__what span { font-size: 0.875rem; color: var(--neutral-70); }
+/* Day of: the next step is marked */
+.tl.is-next .tl__rail::after { background: var(--mes-orange); border-color: var(--mes-orange); box-shadow: 0 0 0 4px rgba(228,108,36,0.18); }
+.tl.is-next .tl__what b::after { content: " · Next"; color: var(--orange-text); font-size: 0.8125rem; }
+/* Ticket + day-of drawers */
+.ticket { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 4px 0 8px; }
+.ticket__code { width: 184px; height: 184px; padding: 14px; border-radius: var(--radius-m); background: var(--white); box-shadow: inset 0 0 0 1px var(--border); }
+.ticket__code svg { display: block; width: 100%; height: 100%; }
+.steps-plain { counter-reset: s; display: flex; flex-direction: column; gap: 12px; }
+.steps-plain li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
+.steps-plain li::before { content: counter(s); width: 28px; height: 28px; border-radius: 50%; background: var(--blue-05); color: var(--hal-blue); font-weight: 700; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; }
+.quick { display: flex; flex-direction: column; gap: 8px; }
+.quick button { text-align: left; padding: 14px 16px; border-radius: 12px; box-shadow: inset 0 0 0 1.5px var(--blue-1); font-weight: 600; color: var(--hal-blue); }
+.quick button:hover { box-shadow: inset 0 0 0 1.5px var(--hal-blue); background: var(--blue-02); }
+
+/* ================= Why go: first white section — one image set + reasons ================= */
+.why__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.why__lead, .why__pair figure { border-radius: 8px; overflow: hidden; margin: 0; }
+/* Fixed at every breakpoint: lead 3:2, supporting pair 4:3 */
+.why__lead { aspect-ratio: 3 / 2; }
+.why__pair figure { aspect-ratio: 4 / 3; }
+.why__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.why img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, center); transition: transform var(--slow) var(--ease); }
+.why__btn { display: block; width: 100%; height: 100%; cursor: zoom-in; border-radius: inherit; overflow: hidden; }
+.why__btn:hover img { transform: scale(1.02); }
+.why__btn:focus-visible { box-shadow: inset 0 0 0 3px rgba(25,121,255,0.85); }
+.reasons { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+.reason { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; }
+.reason__icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--blue-05); color: var(--hal-blue); }
+.reason__icon .icon { width: 1.25rem; height: 1.25rem; stroke-width: 1.8; }
+.reason b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; line-height: 1.25; color: var(--hal-blue); }
+.why__more { margin-top: 24px; }
+.why__about { display: flex; flex-direction: column; gap: 14px; padding-top: 20px; font-size: 1.0625rem; line-height: 1.6; color: var(--neutral-90); max-width: 40rem; text-wrap: pretty; }
+.reason__text { display: block; font-size: 0.9375rem; color: var(--neutral-70); margin-top: 2px; }
+
+/* Detail drawers opened from the key-fact tiles */
+.info { display: flex; flex-direction: column; gap: 14px; padding-bottom: 8px; }
+.info__lead { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.3; color: var(--hal-blue); }
+.info__rows { border-top: 1px solid var(--border); }
+.info__row { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.info__row b { color: var(--neutral-90); }
+.info__row span { color: var(--neutral-70); text-align: right; }
+.info__row small { grid-column: 1 / -1; font-size: 0.875rem; color: var(--neutral-70); }
+.info ul { list-style: disc; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.levels { display: flex; flex-direction: column; gap: 8px; }
+.level { padding: 12px 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--border); }
+.level b { display: block; color: var(--hal-blue); }
+.level span { font-size: 0.875rem; color: var(--neutral-70); }
+.level.is-this { box-shadow: inset 0 0 0 2px var(--hal-blue); background: var(--blue-02); }
+.level.is-this b::after { content: " · This excursion"; font-weight: 600; font-size: 0.8125rem; color: var(--neutral-70); }
 
 /* ================= Compact header + jump nav ================= */
 .compact-header { position: fixed; left: 0; right: 0; top: 0; z-index: 9; height: var(--compact-h); padding-top: var(--safe-top); background: rgba(255,255,255,0.97); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -145,7 +262,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 .compact-header__title { font-size: 0.9375rem; font-weight: 700; color: var(--hal-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .compact-header__ctx { font-size: 0.75rem; color: var(--neutral-70); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.jump { position: sticky; top: var(--compact-h); z-index: 8; background: rgba(255,255,255,0.97); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); margin: 0 calc(-1 * var(--page-pad)); transition: box-shadow var(--fast) var(--ease); }
+.jump { position: sticky; top: var(--compact-h); z-index: 8; background: rgba(255,255,255,0.97); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); margin: 20px calc(-1 * var(--page-pad)) 0; transition: box-shadow var(--fast) var(--ease); }
 .jump.is-stuck { box-shadow: 0 1px 0 var(--border), 0 6px 14px rgba(3,15,31,0.05); }
 .jump__track { display: flex; gap: 8px; padding: 10px var(--page-pad); overflow-x: auto; scrollbar-width: none; scroll-padding: 0 var(--page-pad); }
 .jump__track::-webkit-scrollbar { display: none; }
@@ -161,52 +278,15 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 .lead { font-size: 1.0625rem; line-height: 1.6; text-wrap: pretty; }
 .sub-h { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--neutral-60); margin-bottom: 12px; }
 
-/* Timeline: real clock times for the selected departure */
-.timeline { margin-top: 24px; }
-.timeline__note { font-size: 0.875rem; color: var(--neutral-70); margin: -6px 0 14px; }
-.tl { display: grid; grid-template-columns: 4.75rem 18px 1fr; gap: 0 12px; }
-.tl__time { font-weight: 700; color: var(--hal-blue); font-variant-numeric: tabular-nums; padding: 1px 0 16px; white-space: nowrap; }
-.tl__rail { position: relative; display: flex; justify-content: center; }
-.tl__rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--blue-1); }
-.tl:first-child .tl__rail::before { top: 9px; }
-.tl:last-child .tl__rail::before { bottom: calc(100% - 9px); }
-.tl__rail::after { content: ""; position: relative; margin-top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--white); border: 2px solid var(--hal-blue); }
-.tl__what { padding: 0 0 16px; }
-.tl__what b { display: block; color: var(--neutral-90); }
-.tl__what span { font-size: 0.875rem; color: var(--neutral-70); }
-.tl.is-flash .tl__time { animation: flash 900ms var(--ease); }
-@keyframes flash { 0% { color: var(--mes-orange); } 100% { color: var(--hal-blue); } }
-
-.pack { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
-.pack__card { padding: 16px; border-radius: var(--radius-m); background: var(--neutral-5); }
-.pack__card h3 { font-weight: 700; color: var(--hal-blue); margin-bottom: 8px; }
-.ticks { display: flex; flex-direction: column; gap: 6px; font-size: 0.9375rem; }
-.ticks li { display: flex; gap: 10px; align-items: flex-start; }
-.ticks .icon { width: 1.125rem; height: 1.125rem; stroke-width: 2.2; color: var(--success-text); margin-top: 3px; }
-.ticks li.no .icon { color: var(--neutral-60); }
-
-/* What to expect — ShoreEx detail tiles, plus a positive "you'll love it if" */
-.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.tile { display: grid; gap: 10px; justify-items: start; padding: 14px 14px 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); min-width: 0; }
-.tile > .icon { color: var(--hal-blue); }
-.tile__text { display: flex; flex-direction: column; min-width: 0; }
-.tile__label { font-size: 0.8125rem; color: var(--neutral-70); }
-.tile__value { font-weight: 700; color: var(--hal-blue); }
-.love { margin-top: 24px; }
-.love h3 { font-family: var(--font-display); font-size: 1.25rem; color: var(--hal-blue); margin-bottom: 10px; }
-.love ul { display: flex; flex-direction: column; gap: 10px; }
-.love li { display: flex; gap: 12px; align-items: flex-start; }
-.love li .icon { width: 1.25rem; height: 1.25rem; stroke-width: 2.2; color: var(--success-text); margin-top: 2px; }
-.access-tile { margin-top: 20px; display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); font-size: 0.9375rem; color: var(--neutral-70); }
-.access-tile .icon { color: var(--hal-blue); margin-top: 1px; }
-.access-tile b { display: block; color: var(--hal-blue); }
-.facts { margin-top: 24px; border-top: 1px solid var(--border); }
-.fact { display: grid; grid-template-columns: 1.5rem 1fr; gap: 4px 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-.fact .icon { color: var(--hal-blue); margin-top: 1px; }
-.fact dt { font-weight: 700; color: var(--neutral-90); }
-.fact dd { grid-column: 2; font-size: 0.9375rem; color: var(--neutral-70); }
-.fact--alert dt { color: var(--hal-blue); }
+/* Who it suits: the heading is the answer; rows give the specifics */
+.fit__title { font-size: 1.5rem; line-height: 1.25; max-width: 30rem; }
+.fit__list { margin-top: 20px; border-top: 1px solid var(--border); }
+.fit__row { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.fit__row dt { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--neutral-60); }
+.fit__row dd { color: var(--neutral-90); }
+.fit__row dd b { color: var(--hal-blue); }
 .help { margin-top: 16px; font-size: 0.9375rem; color: var(--neutral-70); }
+@keyframes flash { 0% { color: var(--mes-orange); } 100% { color: inherit; } }
 
 /* ================= Departure times: one compact component everywhere ================= */
 .times-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; font-size: 0.8125rem; color: var(--neutral-70); }
@@ -291,7 +371,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 .ai__label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--neutral-60); }
 .ai__label .icon { width: 0.875rem; height: 0.875rem; color: var(--mes-orange); }
 .ai p { font-size: 1.0625rem; line-height: 1.6; text-wrap: pretty; }
-.caveats { padding: 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); }
+.caveats-unused { padding: 14px 16px; border-radius: var(--radius-m); background: var(--neutral-5); }
 .caveats b { display: block; color: var(--neutral-90); margin-bottom: 6px; }
 .caveats ul { list-style: disc; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 0.9375rem; color: var(--neutral-70); }
 .stories__photos { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; }
@@ -335,22 +415,30 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 .acc__title { font-weight: 700; color: var(--hal-blue); font-size: 1.0625rem; }
 .acc__sub { font-size: 0.875rem; color: var(--neutral-70); }
 .acc .chev { width: 1.25rem; height: 1.25rem; stroke-width: 2; color: var(--hal-blue); }
-.acc__body { padding: 0 0 18px 36px; display: flex; flex-direction: column; gap: 10px; font-size: 0.9375rem; }
+.acc__body { padding: 0 0 18px; display: flex; flex-direction: column; gap: 10px; font-size: 0.9375rem; }
 .acc__body ul { list-style: disc; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
 
-/* Closing invitation — Delftware card (from ShoreEx) */
-.closing { position: relative; margin: 44px auto 20px; width: 100%; max-width: 480px; border-radius: var(--radius-l);
+/* Closing invitation — Delftware. Its own full-width moment after the story, with an explicit button. */
+.closing-wrap { padding: 48px 0 8px; }
+.closing { position: relative; margin: 0 auto; width: 100%; max-width: 480px; border-radius: var(--radius-l);
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
-  padding: 24% 10% calc(93.1% + 28px);
-  background: url("assets/closing-delft-corners.jpg") center top / 100% auto no-repeat, url("assets/closing-delft-scene.jpg") center bottom / 100% auto no-repeat, #FFFFFF;
-  box-shadow: 0 0 0 1px var(--border); color: var(--hal-blue); cursor: pointer; transition: box-shadow var(--fast) var(--ease), transform var(--fast) var(--ease); }
-.closing:hover { box-shadow: 0 0 0 1px var(--border), 0 8px 24px rgba(2,30,70,0.14); transform: translateY(-2px); }
-.closing:has(.closing__hit:focus-visible) { box-shadow: var(--focus); }
-.closing__hit { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
+  /* The scene is inset 12px at the sides and bottom, matching the corner flourishes' margin, so nothing bleeds to the card edge */
+  padding: 24% 10% calc(93.1% + 24px);
+  background: url("assets/closing-delft-corners.jpg") center top / 100% auto no-repeat, url("assets/closing-delft-scene.jpg") center bottom 12px / calc(100% - 24px) auto no-repeat, #FFFFFF;
+  box-shadow: 0 0 0 1px var(--border); color: var(--hal-blue); }
+.closing__eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange-text); }
+.closing__title { font-family: var(--font-display); font-weight: 400; font-size: 1.875rem; line-height: 1.12; letter-spacing: -0.01em; text-wrap: balance; }
+.closing__sub { font-size: 1rem; line-height: 1.5; color: var(--neutral-70); max-width: 30ch; text-wrap: pretty; }
+.closing .btn { margin-top: 8px; }
+/* Booked / day of: the whole card opens the booking or ticket drawer (no visible button) */
+.closing__hit { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+/* Desktop has no sticky footer, so the card shows its action as a button (the card itself stays the click target) */
+.closing .closing__desk-btn { display: none; pointer-events: none; }
 .closing__hit:focus-visible { box-shadow: none; }
-.closing__title { font-family: var(--font-display); font-weight: 400; font-size: 1.75rem; line-height: 1.12; letter-spacing: -0.01em; text-wrap: balance; }
-.closing__sub { font-size: 1rem; line-height: 1.45; color: var(--neutral-70); max-width: 30ch; text-wrap: pretty; }
-.closing__cta { margin-top: 4px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.closing:has(.closing__hit) { cursor: pointer; transition: box-shadow var(--fast) var(--ease), transform var(--fast) var(--ease); }
+.closing:has(.closing__hit):hover { box-shadow: 0 0 0 1px var(--border), 0 8px 24px rgba(2,30,70,0.14); transform: translateY(-2px); }
+.closing:has(.closing__hit:focus-visible) { box-shadow: var(--focus); }
+.closing__cta--desk { display: none; }
 
 /* Footer: sample-data note + prototype states */
 .foot-note { padding: 24px 0 36px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; font-size: 0.8125rem; color: var(--neutral-60); }
@@ -384,6 +472,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 .bar__line2 > span { white-space: nowrap; }
 .bar__unit, .card__unit { font-weight: 400; font-size: 0.875rem; color: var(--neutral-70); font-family: var(--font-body); letter-spacing: 0; }
 .booking-bar .btn { flex: none; white-space: nowrap; }
+@media (max-width: 359px) { .booking-bar .container { gap: 10px; } .booking-bar .btn { padding: 0 16px; font-size: 1rem; } .bar__line1 { font-size: 1rem; } }
 .page { padding-bottom: var(--bar-h); overflow-x: clip; }
 .booking-card { display: none; }
 
@@ -396,12 +485,12 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 .sheet-layer.is-open .sheet { transform: none; }
 .sheet__grab { flex: none; display: flex; justify-content: center; padding-top: 8px; }
 .sheet__grab::before { content: ""; width: 36px; height: 5px; border-radius: 3px; background: var(--neutral-20); }
-.sheet__head { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 12px 8px; }
+.sheet__head { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 14px 10px; }
 .sheet__close { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--hal-blue); }
 .sheet__close .icon { stroke-width: 2; }
 .sheet__title { flex: 1; text-align: center; margin-right: 52px; font-size: 1.0625rem; font-weight: 700; color: var(--hal-blue); }
-.sheet__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 4px 20px 16px; }
-.sheet__foot { flex: none; padding: 12px 20px calc(14px + var(--safe-bottom)); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+.sheet__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 8px 24px 24px; }
+.sheet__foot { flex: none; padding: 18px 24px calc(20px + var(--safe-bottom)); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
 .step { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--neutral-60); margin: 0 0 10px; }
 .ctx { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--radius-m); background: var(--blue-05); margin-bottom: 14px; }
 .ctx .icon { color: var(--hal-blue); }
@@ -441,13 +530,23 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 .lb-close .icon { stroke-width: 2; }
 .lb-track { flex: 1; display: flex; align-items: center; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 12px 28px 24px; scroll-padding: 0 28px; }
 .lb-track::-webkit-scrollbar { display: none; }
-.lb-slide { flex: 0 0 min(100%, 440px); scroll-snap-align: center; align-self: stretch; max-height: 640px; display: flex; flex-direction: column; background: var(--white); border-radius: 24px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.35); transition: transform var(--slow) var(--ease), opacity var(--slow) var(--ease); }
+.lb-slide { flex: 0 0 min(100%, 440px); scroll-snap-align: center; align-self: center; max-height: none; display: flex; flex-direction: column; background: var(--white); border-radius: 24px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.35); transition: transform var(--slow) var(--ease), opacity var(--slow) var(--ease); }
 .lb-slide[aria-hidden="true"] { transform: scale(0.96); opacity: 0.55; }
 .lb-img { flex: none; height: min(48vh, 400px); }
 .lb-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.lb-body { flex: 1; padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
-.lb-title { font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; line-height: 1.15; color: var(--hal-blue); }
-.lb-text { font-size: 1rem; line-height: 1.55; color: var(--neutral-70); text-wrap: pretty; }
+/* Cards hug their content: same compact bottom margin for guest photos and Why go photos */
+.lb-body { flex: none; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 4px; }
+.lb-title { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; line-height: 1.25; color: var(--hal-blue); }
+.lb-text { font-size: 0.9375rem; line-height: 1.45; color: var(--neutral-70); text-wrap: pretty; }
+/* Photo-first variant (Why go): bigger image, one quiet caption line */
+.lightbox--photo .lb-slide { flex-basis: min(100%, 560px); align-self: center; max-height: none; border-radius: 20px; }
+.lightbox--photo .lb-img { height: auto; aspect-ratio: 4 / 3; }
+.lightbox--photo .lb-body { flex: none; padding: 16px 18px 18px; }
+.lb-place { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 1rem; line-height: 1.35; color: var(--hal-blue); }
+.lb-place .icon { width: 1.125rem; height: 1.125rem; stroke-width: 2; color: var(--hal-blue); }
+.lb-place span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 359px) { .lb-track { padding-left: 16px; padding-right: 16px; scroll-padding: 0 16px; } .lb-body, .lightbox--photo .lb-body { padding-left: 14px; padding-right: 14px; } .lb-place { font-size: 0.9375rem; } .lb-caption { font-size: 0.875rem !important; } }
+.lb-caption { font-size: 0.9375rem; line-height: 1.4; color: var(--neutral-70); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lb-nav { flex: none; display: flex; justify-content: center; gap: 12px; padding: 0 0 calc(20px + var(--safe-bottom)); }
 .lb-nav .round-btn { background: rgba(10,22,40,0.55); color: var(--white); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.7); }
 .lb-nav .round-btn:disabled { opacity: 0.35; cursor: default; }
@@ -458,13 +557,12 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 /* ================= Tablet ≥ 640 ================= */
 @media (min-width: 640px) {
   :root { --page-pad: 32px; --content-max: 784px; }
-  .hero { height: calc(clamp(320px, 48svh, 480px) + var(--safe-top)); }
-  .hero__title { font-size: 2.625rem; }
+  .hero { height: calc(clamp(460px, 62svh, 580px) + var(--safe-top)); }
+  .hero__title { font-size: 2.75rem; }
+  .keytiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .reasons { flex-direction: row; gap: 24px; }
+  .reason { flex: 1 1 0; grid-template-columns: 1fr; gap: 10px; }
   .why__title, .section__title { font-size: 2rem; }
-  .hero { height: calc(clamp(440px, 60svh, 560px) + var(--safe-top)); }
-  .moments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .moment { grid-template-columns: 1fr; gap: 12px; }
-  .thumb { width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; }
   .pack { grid-template-columns: 1fr 1fr; }
   .facts { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
   .sheet { left: 50%; right: auto; width: 560px; transform: translate(-50%, 100%); }
@@ -473,7 +571,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   .jump.is-stuck { box-shadow: 0 0 0 100vmax rgba(255,255,255,0.97), 0 1px 0 var(--border), 0 6px 14px rgba(3,15,31,0.05); }
   .closing { max-width: none; aspect-ratio: 2 / 1; align-items: flex-start; justify-content: center; text-align: left;
     padding: 6% 0 6% 10%; background: url("assets/closing-delft-wide-v2.jpg") right bottom / 100% auto no-repeat, #FFFFFF; }
-  .closing__title, .closing__sub { max-width: 38%; }
+  .closing__title, .closing__sub { max-width: 40%; }
 }
 
 /* ================= Desktop ≥ 1024 ================= */
@@ -481,11 +579,17 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   :root { --page-pad: 40px; --content-max: 1280px; --bar-h: 0px; --compact-h: 60px; }
   .page { padding-bottom: 0; }
   .booking-bar { display: none; }
-  .hero { height: min(600px, 66vh); min-height: 480px; }
+  .hero { height: min(560px, 58vh); min-height: 460px; }
   .hero__top { padding: 0 24px; top: 24px; }
-  .hero__body { padding-bottom: 18px; }
-  .hero__title { font-size: 3.25rem; max-width: 16ch; }
-  .hero__scrim::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2,30,70,0.6) 0%, rgba(2,30,70,0.3) 32%, rgba(2,30,70,0) 58%); }
+  .hero__scrim::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2,30,70,0.55) 0%, rgba(2,30,70,0.25) 34%, rgba(2,30,70,0) 58%); }
+  .hero__body { padding-bottom: 28px; }
+  /* Headline spans the whole left column (column width = container minus the 380px card and 64px gap) */
+  .hero__title { font-size: 3.25rem; max-width: calc(100% - 444px); }
+  .hero__lead { font-size: 1.1875rem; max-width: calc(100% - 444px); }
+  .keytiles { padding-top: 4px; grid-template-columns: 1fr 1fr; }
+  .closing__cta--mob { display: none; }
+  .closing__cta--desk { display: inline; }
+  .closing .closing__desk-btn { display: inline-flex; margin-top: 8px; }
   .compact-header { border-bottom: 1px solid var(--border); }
   .compact-header__inner { height: 60px; padding: 0 calc(var(--page-pad) - 12px); }
   .compact-header__text { text-align: left; margin-right: 0; display: flex; align-items: baseline; gap: 12px; }
@@ -493,15 +597,11 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   .compact-header__ctx { font-size: 0.875rem; }
 
   .layout { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 380px; column-gap: 64px; align-items: start; }
-  .why { grid-column: 1; grid-row: 1; padding: 20px 0 48px; }
-  .why__rule { width: calc(100% + 64px + 380px); max-width: none; }
+  .band { grid-column: 1; grid-row: 1; }
   .main-col { min-width: 0; grid-column: 1; grid-row: 2; }
-  .hero__facts { font-size: 1rem; gap: 8px 24px; }
-  .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .why__title { font-size: 2.25rem; }
-  .moments { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-  .thumb { aspect-ratio: 3 / 2; border-radius: 16px; }
-  .jump { margin: 32px 0 0; box-shadow: none; clip-path: none; }
+  .closing-wrap { padding-top: 72px; }
+  .jump { margin: 40px 0 0; box-shadow: none; clip-path: none; }
   .jump.is-stuck { box-shadow: 0 10px 12px -10px rgba(3,15,31,0.12); }
   .jump__track { padding: 12px 0; }
   .section { padding-top: 44px; }
@@ -509,29 +609,41 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   .lead { font-size: 1.1875rem; max-width: 62ch; }
   .stories__photos { height: 220px; grid-template-columns: 1.6fr 1fr; gap: 10px; }
   .ugc-photo { min-height: 0; }
-  .closing__title { font-size: 2rem; }
+  .closing { max-width: none; }
+  .closing__title { font-size: 2.5rem; }
+  .closing__sub { font-size: 1.0625rem; }
   .toast { bottom: 32px; }
 
   /* Booking card rises into the hero beside the title, then stays in view */
-  .booking-card { display: flex; flex-direction: column; gap: 20px; grid-column: 2; grid-row: 1 / span 2; position: sticky; top: calc(var(--compact-h) + 20px); margin-top: -190px; padding: 28px; background: var(--white); border-radius: var(--radius-l); box-shadow: var(--shadow-card), 0 0 0 1px rgba(3,15,31,0.04); z-index: 5;
+  .booking-card { display: flex; flex-direction: column; gap: 16px; grid-column: 2; grid-row: 1 / span 2; position: sticky; top: calc(var(--compact-h) + 20px); margin-top: -230px; padding: 24px; background: var(--white); border-radius: var(--radius-l); box-shadow: var(--shadow-card), 0 0 0 1px rgba(3,15,31,0.04); z-index: 5;
     max-height: calc(100vh - var(--compact-h) - 40px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  /* Booked / day of: the card is short, so it aligns its top with the Your plan pass (band padding is 4px) */
+  /* Every state: the card's top aligns with the first block in the navy band (tiles or Your plan; both sit 4px down) */
+  .booking-card { margin-top: 4px; }
   .card__ctx { font-size: 0.8125rem; color: var(--neutral-70); }
   .card__price { font-size: 2rem; line-height: 1.1; }
   .card__date { font-size: 0.875rem; color: var(--neutral-70); }
   .booking-card .slot { padding-left: 10px; padding-right: 10px; }
   .booking-card .slot[aria-checked="true"] { padding-left: 9.5px; padding-right: 9.5px; }
 
-  .sheet { left: 50%; top: 50%; bottom: auto; width: 500px; max-height: min(760px, 90vh); border-radius: var(--radius-l); opacity: 0; transform: translate(-50%, -46%); transition: transform var(--slow) var(--ease), opacity var(--slow) var(--ease); }
+  .sheet { left: 50%; top: 50%; bottom: auto; width: 500px; max-height: min(860px, 92vh); border-radius: var(--radius-l); opacity: 0; transform: translate(-50%, -46%); transition: transform var(--slow) var(--ease), opacity var(--slow) var(--ease); }
   .sheet-layer.is-open .sheet { opacity: 1; transform: translate(-50%, -50%); }
   .sheet__grab { display: none; }
-  .sheet__head { padding-top: 12px; }
+  /* Desktop dialog: roomier than the phone drawer */
+  .sheet { width: 540px; }
+  .sheet__head { padding: 18px 20px 12px; }
+  .sheet__body { padding: 8px 36px 32px; }
+  .sheet__foot { padding: 22px 36px 32px; gap: 14px; }
   .lb-track { padding-left: calc(50% - 220px); padding-right: calc(50% - 220px); }
+  .lightbox--photo .lb-track { padding-left: calc(50% - 280px); padding-right: calc(50% - 280px); }
 }
 
+@media (min-width: 1280px) { .keytiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
 @media (prefers-reduced-motion: reduce) {
+  .slide.is-kb img { animation: none; }
   *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; animation-delay: 0ms !important; scroll-behavior: auto !important; }
   .confirm__mark svg { stroke-dashoffset: 0; }
-  .slide.is-kb img { animation: none; }
 }
 </style>
 </head>
@@ -559,6 +671,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     <symbol id="i-cal" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></symbol>
+    <symbol id="i-partly" viewBox="0 0 24 24"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.65a4 4 0 0 0-5.93-4.13M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></symbol>
     <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
     <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 10v12M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88z"/></symbol>
@@ -596,107 +709,69 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     </div>
     <div class="hero__body">
       <div class="container">
-        <button class="status-chip" type="button" data-action="goto-times" data-bind="status-chip"><span class="status-chip__dot" aria-hidden="true"></span><span data-bind="status-text"></span></button>
-        <p class="hero__eyebrow">Day 4 · Juneau, Alaska</p>
+        <p class="hero__eyebrow" data-bind="hero-eyebrow">Day 4 · Juneau · Sat, Dec 12</p>
         <h1 class="hero__title">Alaska’s Whales &amp; Mendenhall Glacier Trail</h1>
-        <ul class="hero__facts" aria-label="Key facts">
-          <li><svg class="icon" aria-hidden="true"><use href="#i-cal"/></svg>Sat, Dec 12</li>
-          <li><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>5 hours</li>
-          <li><svg class="icon" aria-hidden="true"><use href="#i-act"/></svg>Moderate · 1.5 mi gravel</li>
-          <li><svg class="icon" aria-hidden="true"><use href="#i-access"/></svg><a href="#expect" data-action="goto" data-target="expect">Not wheelchair accessible</a></li>
-        </ul>
+        <p class="hero__lead">Humpbacks from a small boat, then a walk to the foot of Nugget Falls.</p>
       </div>
     </div>
   </header>
 
 <div class="container layout">
-  <!-- Why go -->
-  <section class="why" aria-labelledby="why-h">
-    <hr class="why__rule">
-    <div class="why__head">
-      <span class="eyebrow">Why go</span>
-      <h2 class="display why__title" id="why-h">Three moments you’ll talk about at dinner</h2>
-    </div>
-    <ol class="moments" data-bind="moments"></ol>
-  </section>
+  <!-- Navy band: what it is and the decision facts, then why go -->
+  <div class="band">
+    <div data-show="booked" data-bind="pass"></div>
+    <ul class="keytiles" aria-label="Key facts" data-show="browse">
+      <li><button class="keytile" type="button" data-action="sheet" data-kind="duration" aria-haspopup="dialog"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span class="keytile__text"><span class="keytile__label">Duration</span><span class="keytile__value">5 hours</span><span class="keytile__sub">Boat, then walk</span></span></button></li>
+      <li><button class="keytile" type="button" data-action="sheet" data-kind="activity" aria-haspopup="dialog"><svg class="icon" aria-hidden="true"><use href="#i-act"/></svg><span class="keytile__text"><span class="keytile__label">Activity</span><span class="keytile__value">Moderate</span><span class="keytile__sub">1.5 mi of gravel</span></span></button></li>
+      <li><button class="keytile" type="button" data-action="sheet" data-kind="access" aria-haspopup="dialog"><svg class="icon" aria-hidden="true"><use href="#i-access"/></svg><span class="keytile__text"><span class="keytile__label">Accessibility</span><span class="keytile__value">No wheelchairs</span><span class="keytile__sub">Ramp boarding</span></span></button></li>
+      <li><div class="keytile"><svg class="icon" aria-hidden="true"><use href="#i-age"/></svg><span class="keytile__text"><span class="keytile__label">Ages</span><span class="keytile__value">18 and over</span><span class="keytile__sub">Up to 20 guests</span></span></div></li>
+    </ul>
+  </div>
 
   <div class="main-col">
     <nav class="jump" id="jump" aria-label="Jump to section">
       <div class="jump__track" id="jump-track"></div>
     </nav>
 
-    <!-- The day -->
-    <section class="section" id="day" data-section aria-labelledby="day-h">
-      <div class="section__head"><span class="eyebrow">Your day</span><h2 class="display section__title" id="day-h">From Auke Bay to the ice</h2></div>
-      <p class="lead">Your naturalist reads Stephens Passage for blows and bubble nets while the boat lets the whales set the pace. Ashore, the trail ends at Nugget Falls, close enough to feel the cold air coming off the glacier.</p>
-      <div class="timeline">
-        <h3 class="sub-h" data-bind="tl-head">Your 7:45 AM departure</h3>
-        <p class="timeline__note">Times follow the departure you choose. Total about 5 hours.</p>
-        <ol data-bind="timeline"></ol>
-      </div>
-      <div class="pack">
-        <div class="pack__card">
-          <h3>Included</h3>
-          <ul class="ticks">
-            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Naturalist-guided whale watching</li>
-            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Guided walk to Nugget Falls</li>
-            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Coach transfers, snack and bottled water</li>
-            <li class="no"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Gratuities for your guide (optional)</li>
-          </ul>
-        </div>
-        <div class="pack__card">
-          <h3>Bring</h3>
-          <ul class="ticks">
-            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Warm layers and a waterproof jacket</li>
-            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Shoes with grip for wet gravel</li>
-            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Ship card and photo ID (needed to board)</li>
-            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Binoculars, if you have them</li>
-          </ul>
-        </div>
-      </div>
+    <!-- Booked: the day, step by step -->
+    <section class="section" id="plan" data-section data-show="booked" aria-labelledby="plan-h">
+      <div class="section__head"><div class="section__eyebrow-row"><span class="eyebrow" data-bind="plan-eyebrow">Your day</span><span class="weather" data-bind="weather" hidden></span></div><h2 class="display section__title" id="plan-h" data-bind="plan-title">Saturday, step by step</h2></div>
+      <p class="tl-note" data-bind="tl-note"></p>
+      <ol data-bind="timeline"></ol>
     </section>
 
-    <!-- Suitability: everything a guest needs to rule it in or out, no modal -->
-    <!-- What to expect: scannable facts + who it suits, no modal -->
-    <section class="section" id="expect" data-section aria-labelledby="expect-h">
-      <div class="section__head"><span class="eyebrow">What to expect</span><h2 class="display section__title" id="expect-h">Moderate pace, some trails</h2></div>
-      <div class="tiles">
-        <div class="tile"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span class="tile__text"><span class="tile__label">Duration</span><span class="tile__value">5 hours</span></span></div>
-        <div class="tile"><svg class="icon" aria-hidden="true"><use href="#i-act"/></svg><span class="tile__text"><span class="tile__label">Activity</span><span class="tile__value">Moderate</span></span></div>
-        <div class="tile"><svg class="icon" aria-hidden="true"><use href="#i-group"/></svg><span class="tile__text"><span class="tile__label">Group</span><span class="tile__value">Up to 20</span></span></div>
-        <div class="tile"><svg class="icon" aria-hidden="true"><use href="#i-lang"/></svg><span class="tile__text"><span class="tile__label">Language</span><span class="tile__value">English</span></span></div>
+    <!-- Booked / day of: what to bring -->
+    <section class="section" id="bring" data-section data-show="booked" aria-labelledby="bring-h">
+      <div class="section__head"><span class="eyebrow">What to bring</span><h2 class="display section__title" id="bring-h" data-bind="bring-title">Pack for Saturday</h2></div>
+      <ul class="checklist" data-bind="bring"></ul>
+    </section>
+
+    <!-- Why go: first white section -->
+    <section class="section why" id="why" data-show="browse" data-section aria-labelledby="why-h">
+      <div class="why__head">
+        <span class="eyebrow">Why go</span>
+        <h2 class="display section__title" id="why-h">On the water, then on foot</h2>
       </div>
-      <div class="love">
-        <h3>You’ll love it if…</h3>
-        <ul>
-          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>A chilly deck is a fair trade for a humpback surfacing nearby</span></li>
-          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>You’re happy walking 1.5 miles of gravel trail, with a few short inclines</span></li>
-          <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>You like a small group: 20 guests at most, all 18 or older</span></li>
-        </ul>
-      </div>
-      <p class="access-tile"><svg class="icon" aria-hidden="true"><use href="#i-access"/></svg><span><b>Accessibility</b>Not wheelchair accessible. You’ll board by a floating dock and ramp and walk an uneven gravel trail. Questions? Call <a class="link" href="tel:18884259376">1.888.425.9376</a> or ask the Shore Excursions desk.</span></p>
+      <div data-bind="story"></div>
     </section>
 
     <!-- Price & times (phone/tablet; desktop uses the booking card) -->
-    <section class="section section--mobile-only" id="times" data-section aria-labelledby="times-h">
+    <section class="section section--mobile-only" id="times" data-show="browse" data-section aria-labelledby="times-h">
       <div class="section__head"><span class="eyebrow">Price &amp; times</span><h2 class="display section__title" id="times-h">$259 per guest</h2></div>
       <div data-bind="times-body"></div>
     </section>
 
     <!-- Reviews -->
-    <section class="section" id="reviews" data-section aria-labelledby="reviews-h">
-      <div class="section__head"><span class="eyebrow">Guest reviews</span><h2 class="display section__title" id="reviews-h">What guests are saying</h2></div>
+    <section class="section" id="reviews" data-show="browse" data-section aria-labelledby="reviews-h">
+      <div class="section__head"><h2 class="eyebrow" id="reviews-h">Guest reviews</h2></div>
       <div class="stories">
         <div class="rating">
           <span class="rating__score display">4.8</span>
           <div><div data-bind="rating-stars"></div><p class="rating__meta"><b>1,240 ratings</b> · 96% would recommend</p></div>
         </div>
         <div class="ai">
-          <span class="ai__label"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg>Summarized from guest reviews</span>
-          <p>Guests say the humpbacks steal the show, often bubble-net feeding close to the boat, and that the naturalists make a small group feel personal.</p>
-          <div class="caveats"><b>What some guests mention</b>
-            <ul><li>It’s cold on deck, even in summer. Layers help.</li><li>The ride out can be choppy if you’re prone to seasickness.</li><li>The trail gets muddy after rain, and a few wanted longer at the glacier.</li></ul>
-          </div>
+          <span class="ai__label">Summary of guest reviews</span>
+          <p>Guests single out the humpbacks, often bubble-net feeding close to the boat, and naturalists who make a small group feel personal. The common caveats: it’s cold on deck, the water can be choppy for anyone prone to seasickness, and a few wished for more time at the glacier.</p>
         </div>
         <div class="stories__photos" data-bind="story-photos"></div>
       </div>
@@ -711,16 +786,19 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 
     <!-- Policies -->
     <section class="section" id="policies" data-section aria-labelledby="policies-h">
-      <div class="section__head"><span class="eyebrow">Before you book</span><h2 class="display section__title" id="policies-h">Good to know</h2></div>
+      <div class="section__head"><h2 class="eyebrow" id="policies-h" data-bind="policies-h">Before you book</h2></div>
       <div data-bind="policies"></div>
     </section>
 
-    <aside class="closing" data-bind="closing" aria-label="Reserve this excursion"></aside>
   </div>
 
   <!-- Desktop booking card -->
   <aside class="booking-card" aria-label="Book this excursion" data-bind="card"></aside>
 </div>
+
+  <section class="container closing-wrap" aria-labelledby="closing-h">
+    <div class="closing" data-bind="closing"></div>
+  </section>
 
   <footer class="foot-note container">
     <p>Prototype with sample content. Prices, availability, credits and reviews are illustrative, and nothing is booked or charged.</p>
@@ -728,7 +806,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     <div class="proto__panel" id="proto-panel" hidden>
       <div><div class="proto__label">7:45 AM availability</div><div class="proto__opts" data-bind="proto-first"></div></div>
       <div><div class="proto__label">Excursion credits on the stateroom</div><div class="proto__opts" data-bind="proto-credits"></div></div>
-      <div><button class="link" type="button" data-action="proto-reset">Reset booking and waitlist</button></div>
+      <div class="proto__opts"><button type="button" data-action="proto-booked">Preview booked</button><button type="button" data-action="proto-today">Preview day of</button><button type="button" data-action="proto-reset">Reset</button></div>
     </div>
   </footer>
 </main>
@@ -777,27 +855,29 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     { time: '1:30\u00a0PM', min: 810, status: 'waitlist', spots: 0 }
   ];
   // Minutes relative to departure. Adds up to the 5 hours quoted everywhere.
-  const TIMELINE = [
-    { at: -20, what: `Meet at ${MEET}`, note: 'Bring your ship card and photo ID' },
-    { at: 0, what: 'Coach to Auke Bay', note: 'About 25 minutes · board by floating dock and ramp' },
-    { at: 30, what: 'Whale watching in Stephens Passage', note: 'About 2 hours on a small boat · snack and water' },
-    { at: 165, what: 'Walk to Nugget Falls', note: '1.5 miles round trip on uneven gravel · about 1½ hours' },
-    { at: 300, what: 'Back at the ship', note: `All aboard is ${'8:30 PM'}` }
-  ];
+  // Hero slideshow: only photos of what the excursion includes
   const HERO = [
-    { src: 'assets/hero-2-bubble-net.jpg', title: 'Humpbacks bubble-net feeding' },
-    { src: 'assets/hero-2-whale-breach.jpg', title: 'A humpback surfacing near the shore' },
-    { src: 'assets/hero-4-mendenhall-trail.jpg', title: 'The trail toward Mendenhall Glacier' }
+    { src: 'assets/hero-3-westerdam-glacier-bay.jpg', pos: '26% 50%', title: 'Westerdam sailing toward a tidewater glacier' },
+    { src: 'assets/hero-2-whale-breach.jpg', pos: '60% 55%', title: 'A humpback breaching, glacier behind' },
+    { src: 'assets/hero-4-mendenhall-trail.jpg', pos: '50% 50%', title: 'The trail toward Mendenhall Glacier' }
   ];
   const MOTION = [
-    { ox: '50%', oy: '60%', fx: '0%', fy: '0%', tx: '-2%', ty: '-1%' },
-    { ox: '60%', oy: '50%', fx: '1%', fy: '0%', tx: '-2%', ty: '-1%' },
+    // From ShoreEx: zooms from the left edge while drifting left and up, easing off the ship toward the glacier
+    { ox: '0%', oy: '50%', fx: '0%', fy: '0%', tx: '-14%', ty: '-4%', s0: 1.06, s1: 1.22 },
+    // Zoom anchored to the bottom edge lifts the whale clear of the title on tall phone crops
+    { ox: '62%', oy: '100%', fx: '0%', fy: '0%', tx: '-1%', ty: '0%', s0: 1.2, s1: 1.3 },
     { ox: '40%', oy: '60%', fx: '-1%', fy: '1%', tx: '2%', ty: '-2%' }
   ];
-  const MOMENTS = [
-    { img: 'assets/moment-1-humpback.jpg', alt: 'A humpback whale breaching in front of a forested shoreline', title: 'Humpbacks up close', text: 'A naturalist reads the water for blows and bubble nets.', more: 'The boat slows and lets the whales set the pace. Orcas, sea lions and bald eagles often join in. If no whale is seen, you get a partial refund.' },
-    { img: 'assets/moment-2-nugget-falls.jpg', alt: 'Nugget Falls pouring onto a rocky beach beside Mendenhall Glacier', title: 'A walk to the falls', text: '1.5 miles of gravel trail to Nugget Falls, beside the glacier.', more: 'An uneven gravel trail with a few short inclines ends at the roar of Nugget Falls, close enough to feel the cold air off the ice.' },
-    { img: 'assets/ugc-6-crew-selfie.jpg', pos: '50% 30%', alt: 'Guests smiling with their whale-watching crew at the dock', title: 'Just 20 guests aboard', text: 'A window for everyone and time for questions.', more: 'A small boat means a window for everyone and a crew with time to answer your questions.' }
+  // Why go: one image set, then three reasons
+  const WHY_IMGS = [
+    { img: 'assets/hero-2-bubble-net.jpg', pos: '55% 78%', place: 'Stephens Passage, Juneau', cap: 'Humpbacks surfacing as they feed', alt: 'Humpback whales surfacing together with mouths open, gulls overhead and mountains behind' },
+    { img: 'assets/moment-2-nugget-falls.jpg', pos: '0% 50%', place: 'Nugget Falls, Mendenhall Lake', cap: 'The gravel trail ends at the falls', alt: 'Nugget Falls pouring onto a rocky beach, with Mendenhall Glacier across the lake' },
+    { img: 'assets/hero-3-ice-hike.jpg', pos: '62% 50%', place: 'Glacier ice field, Alaska', cap: 'A guided group by a meltwater pool', alt: 'A guided group in helmets and harnesses beside a blue meltwater pool on a glacier' }
+  ];
+  const REASONS = [
+    { icon: 'wave', title: 'Humpbacks up close', text: 'About 2 hours on the water with a naturalist' },
+    { icon: 'pin', title: 'The walk to Nugget Falls', text: '1.5 miles round trip, beside the glacier' },
+    { icon: 'group', title: 'A small boat', text: 'Up to 20 guests, a window for everyone' }
   ];
   const UGC = [
     { img: 'assets/ugc-1-mendenhall-selfie.jpg', by: 'Lena R.', ship: 'Koningsdam · Aug 2026', cap: 'Our selfie at Mendenhall Lake, with the glacier behind us' },
@@ -806,19 +886,17 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     { img: 'assets/ugc-4-humpback-breach.jpg', by: 'Priya S.', ship: 'Koningsdam · Jun 2026', cap: 'A humpback breaching, flipper and all' },
     { img: 'assets/ugc-5-bubble-net.jpg', by: 'Lena R.', ship: 'Koningsdam · Aug 2026', cap: 'Humpbacks bubble-net feeding, with the gulls right behind' },
     { img: 'assets/ugc-6-crew-selfie.jpg', by: 'Marcus T.', ship: 'Eurodam · Jul 2026', cap: 'With our whale-watching crew at the dock' },
-    { img: 'assets/ugc-7-buoy-sea-lions.jpg', by: 'Jordan K.', ship: 'Zuiderdam · Jun 2026', cap: 'Sea lions napping on a channel buoy' },
-    { img: 'assets/ugc-8-glacier-overlook.jpg', by: 'Ana G.', ship: 'Eurodam · Sep 2026', cap: 'Looking out over Mendenhall Glacier' }
+    { img: 'assets/ugc-7-buoy-sea-lions.jpg', by: 'Jordan K.', ship: 'Zuiderdam · Jun 2026', cap: 'Sea lions napping on a channel buoy' }
   ];
   const REVIEWS = [
     { name: 'Lena R.', meta: 'Koningsdam · Aug 2026', stars: 5, text: 'We saw five humpbacks bubble-net feeding, and the captain cut the engines so we could hear them breathe. The glacier walk was easy and the falls were stunning.', tags: ['Whales', 'Guides'], photos: [4, 0], helpful: 48 },
     { name: 'Marcus T.', meta: 'Eurodam · Jul 2026', stars: 5, text: 'The small group made all the difference. Everyone had a window and the naturalist answered every question. Bring layers; it was cold on deck.', tags: ['Guides', 'Pace'], photos: [5], helpful: 31 },
     { name: 'Priya S.', meta: 'Koningsdam · Jun 2026', stars: 4, text: 'Rainy day, but the whales didn’t care. The trail to Nugget Falls is gravel, not steep. I wish we’d had a few more minutes at the glacier.', tags: ['Glacier', 'Pace'], photos: [3], helpful: 22 },
-    { name: 'Robert M.', meta: 'Eurodam · Sep 2026', stars: 3, text: 'The whales were worth it, but I was queasy on the way out and the trail was muddier than I expected. Take seasickness tablets beforehand and wear proper shoes.', tags: ['Whales', 'Pace'], photos: [], helpful: 19 },
     { name: 'Tom H.', meta: 'Koningsdam · Jul 2026', stars: 5, text: 'We had orcas as well as humpbacks. Our guide was fantastic with questions about how they track the whales.', tags: ['Whales', 'Guides'], photos: [1], helpful: 17 },
     { name: 'Dee W.', meta: 'Nieuw Amsterdam · Aug 2026', stars: 5, text: 'Calm, well-organized day. We were back on board with time for a late lunch.', tags: ['Pace'], photos: [2], helpful: 9 },
-    { name: 'Ana G.', meta: 'Eurodam · Sep 2026', stars: 4, text: 'The glacier was the highlight for me. The boat was great, though it can get choppy if you’re prone to seasickness.', tags: ['Glacier', 'Whales'], photos: [7], helpful: 6 }
+    { name: 'Ana G.', meta: 'Eurodam · Sep 2026', stars: 4, text: 'The glacier was the highlight for me. The boat was great, though it can get choppy if you’re prone to seasickness.', tags: ['Glacier', 'Whales'], photos: [], helpful: 6 }
   ];
-  const TOPICS = ['All', 'Whales', 'Glacier', 'Guides', 'Pace', '4★ and below'];
+  const TOPICS = ['All', 'Whales', 'Glacier', '4★ and below'];
 
   /* ======================= State ======================= */
   const q = new URLSearchParams(location.search);
@@ -828,7 +906,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     credits: q.has('credits') ? Math.max(0, Math.min(2, +q.get('credits') || 0)) : 2,
     useCredits: true, dep: 0, guests: 2,
     booking: null, wait: null, notify: {},
-    sheet: null, flow: 2, gallery: 0, topic: 'All', reviewsAll: false, helpful: {}
+    today: q.get('today') === '1', sheet: null, flow: 2, gallery: 0, topic: 'All', reviewsAll: false, helpful: {}
   };
   const depList = () => DEPS.map((d, i) => i === 0 ? { ...d, status: state.first, spots: state.first === 'few' ? 3 : state.first === 'available' ? 12 : 0 } : d);
   const cur = () => depList()[state.dep];
@@ -856,18 +934,30 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const deskMQ = matchMedia('(min-width: 1024px)');
 
-  /* ======================= Hero slideshow (ambient, pausable) ======================= */
+  /* ======================= Why go + photo viewer ======================= */
+  // Each photo opens the viewer at that photo
+  const whyImg = (m, i) => `<button class="why__btn" type="button" data-action="lightbox" data-set="why" data-i="${i}" aria-haspopup="dialog" aria-label="View photo ${i + 1} of ${WHY_IMGS.length}: ${m.place}"><img src="${m.img}" alt="" loading="lazy" decoding="async" style="--pos:${m.pos}"></button>`;
+  bind('story').innerHTML = `<figure class="why__lead">${whyImg(WHY_IMGS[0], 0)}</figure>
+    <div class="why__pair">${WHY_IMGS.slice(1).map((m, k) => `<figure>${whyImg(m, k + 1)}</figure>`).join('')}</div>
+    <ul class="reasons">${REASONS.map(r => `<li class="reason"><span class="reason__icon">${ic(r.icon)}</span><span><b>${r.title}</b><span class="reason__text">${r.text}</span></span></li>`).join('')}</ul>
+    <button class="btn btn--ghost why__more" type="button" data-action="reveal" data-target="why-about" data-open="Show less" data-closed="Read about the day" aria-expanded="false" aria-controls="why-about"><span>Read about the day</span>${ic('down', 'icon chev')}</button>
+    <div class="reveal" id="why-about"><div><div class="why__about">
+      <p>The day starts at the pier, where transfers take you to a small boat with room for 20 guests. For about two hours, a naturalist guides you through Stephens Passage, reading the water for blows and bubble nets while the boat slows to let the whales set the pace. Orcas, sea lions and bald eagles often appear too.</p>
+      <p>Back ashore, you head to Mendenhall Glacier and walk about 1.5 miles round trip on an uneven gravel trail, with a few short inclines, to the foot of Nugget Falls. You’ll be close enough to feel the cold air coming off the ice. A snack and bottled water are included, and you’re back at the pier about five hours after you set out.</p>
+    </div></div></div>`;
+
+  /* ======================= Hero slideshow (ambient Ken Burns, pausable) ======================= */
   const SLIDE_MS = 6500;
   const gallery = $('#gallery');
   gallery.innerHTML = HERO.map((h, i) => { const m = MOTION[i];
-    return `<figure class="slide" style="--ox:${m.ox};--oy:${m.oy};--fx:${m.fx};--fy:${m.fy};--tx:${m.tx};--ty:${m.ty}"><img src="${h.src}" alt="" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></figure>`; }).join('');
+    return `<figure class="slide" style="--ox:${m.ox};--oy:${m.oy};--fx:${m.fx};--fy:${m.fy};--tx:${m.tx};--ty:${m.ty};--pos:${h.pos}${m.s0 ? `;--s0:${m.s0};--s1:${m.s1}` : ''}"><img src="${h.src}" alt="" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></figure>`; }).join('');
   bind('dots').innerHTML = HERO.map((h, i) => `<button type="button" data-action="gal-go" data-i="${i}" aria-label="Photo ${i + 1} of ${HERO.length}: ${h.title}" aria-current="${i === 0}"></button>`).join('');
   const slides = [...gallery.children];
   let slideTimer = null, userPaused = false, heroVisible = true;
   function showSlide(i) {
     i = (i + HERO.length) % HERO.length;
     const prev = slides[state.gallery]; state.gallery = i;
-    slides.forEach((s, k) => s.classList.toggle('is-active', k === i));
+    slides.forEach((sl, k) => sl.classList.toggle('is-active', k === i));
     const next = slides[i]; next.classList.remove('is-kb'); void next.offsetWidth; if (!reduced()) next.classList.add('is-kb');
     if (prev && prev !== next) setTimeout(() => { if (!prev.classList.contains('is-active')) prev.classList.remove('is-kb'); }, 1900);
     $$('button', bind('dots')).forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
@@ -878,7 +968,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     userPaused = p; const b = $('.hero__pause');
     b.setAttribute('aria-pressed', String(p)); b.setAttribute('aria-label', p ? 'Play slideshow' : 'Pause slideshow');
     $('use', b).setAttribute('href', p ? '#i-play' : '#i-pause');
-    slides.forEach(s => s.firstElementChild.style.animationPlayState = p ? 'paused' : '');
+    slides.forEach(sl => sl.firstElementChild.style.animationPlayState = p ? 'paused' : '');
     schedule();
   }
   new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; schedule(); }, { threshold: 0.2 }).observe($('.hero'));
@@ -886,17 +976,10 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   if (reduced()) $('.hero__pause').hidden = true;
   showSlide(0); schedule();
 
-  /* ======================= Why go + photo viewer ======================= */
-  bind('moments').innerHTML = MOMENTS.map((m, k) => `<li>
-      <button class="moment" type="button" data-action="lightbox" data-set="moments" data-i="${k}" aria-haspopup="dialog">
-        <span class="thumb"><img src="${m.img}" alt="" loading="lazy" decoding="async"${m.pos ? ` style="object-position:${m.pos}"` : ''}></span>
-        <span class="moment__copy"><span class="moment__title">${m.title}</span><span class="moment__text">${m.text}</span></span>
-      </button></li>`).join('');
-
   const lb = $('#lightbox'), lbTrack = $('#lb-track');
   const LB_SETS = {
-    moments: () => MOMENTS.map(m => ({ img: m.img, alt: m.alt, pos: m.pos, title: m.title, text: m.more })),
-    ugc: () => UGC.map(p => ({ img: p.img, alt: p.cap, title: p.cap, text: `${p.by} · ${p.ship}` }))
+    ugc: () => UGC.map(p => ({ img: p.img, alt: p.cap, title: p.cap, text: `${p.by} · ${p.ship}` })),
+    why: () => WHY_IMGS.map(m => ({ img: m.img, alt: m.alt, place: m.place, cap: m.cap, pos: m.pos }))
   };
   let lbIndex = 0, lbOpener = null, lbLen = 0;
   const lbSlides = () => [...lbTrack.children];
@@ -918,10 +1001,11 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   }, 60); }, { passive: true });
   function openLightbox(i, opener, set) {
     lbOpener = opener; const items = LB_SETS[set](); lbLen = items.length;
-    lb.setAttribute('aria-label', set === 'ugc' ? 'Guest photos' : 'Why go');
+    lb.setAttribute('aria-label', set === 'ugc' ? 'Guest photos' : 'Why go photos');
+    lb.classList.toggle('lightbox--photo', set === 'why');
     lbTrack.innerHTML = items.map((s, k) => `<article class="lb-slide" aria-roledescription="slide" aria-label="${k + 1} of ${items.length}">
         <div class="lb-img"><img src="${s.img}" alt="${s.alt}" decoding="async"${s.pos ? ` style="object-position:${s.pos}"` : ''}></div>
-        <div class="lb-body"><h3 class="lb-title">${s.title}</h3><p class="lb-text">${s.text}</p></div></article>`).join('');
+        <div class="lb-body">${s.cap ? `<h3 class="lb-place">${ic('pin')}<span>${s.place}</span></h3><p class="lb-caption">${s.cap}</p>` : `<h3 class="lb-title">${s.title}</h3><p class="lb-text">${s.text}</p>`}</div></article>`).join('');
     lbIndex = i; setCount();
     lb.classList.add('is-open'); lockPage(true);
     requestAnimationFrame(() => { lbTo(i, false); $('[data-action="close-lightbox"]').focus(); });
@@ -934,21 +1018,19 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   const fullRow = () => `<span class="stars">${'<svg viewBox="0 0 24 24"><use href="#i-star"/></svg>'.repeat(5)}</span>`;
   bind('rating-stars').innerHTML = `<span class="stars-frac" role="img" aria-label="Rated 4.8 out of 5">${fullRow()}<span class="stars" style="width:96%">${'<svg viewBox="0 0 24 24"><use href="#i-star"/></svg>'.repeat(5)}</span></span>`;
   const initials = (n) => n.split(/\s+/).map(w => w[0]).join('').replace('.', '').slice(0, 2).toUpperCase();
-  bind('story-photos').innerHTML = [4, 0].map((i, k) => { const p = UGC[i];
+  bind('story-photos').innerHTML = [0, 1].map((i, k) => { const p = UGC[i];
     return `<button class="ugc-photo" type="button" data-action="ugc" data-i="${i}" aria-haspopup="dialog" aria-label="${k === 1 ? `See all ${UGC.length} guest photos` : `Guest photo by ${p.by}: ${p.cap}`}"><img src="${p.img}" alt="" loading="lazy" decoding="async">${k === 1 ? `<span class="ugc-photo__more" aria-hidden="true">+${UGC.length - 1} photos</span>` : `<span class="ugc-photo__by" aria-hidden="true">${p.by}</span>`}</button>`; }).join('');
   const topicMatch = (r) => state.topic === 'All' || (state.topic === '4★ and below' ? r.stars <= 4 : r.tags.includes(state.topic));
   function renderStories() {
     bind('filters').innerHTML = TOPICS.map(t => `<button type="button" data-action="topic" data-t="${t}" aria-pressed="${state.topic === t}">${t}</button>`).join('');
     const list = REVIEWS.filter(topicMatch), shown = state.reviewsAll ? list : list.slice(0, 3);
-    bind('review-count').innerHTML = `Showing ${shown.length} of ${plural(list.length, 'sample review')} · most helpful first`;
+    bind('review-count').innerHTML = `Showing ${shown.length} of ${plural(list.length, 'sample review')}`;
     bind('reviews').innerHTML = shown.map(r => { const i = REVIEWS.indexOf(r), on = !!state.helpful[i];
       return `<li class="review">
         <div class="review__who"><span class="avatar" aria-hidden="true">${initials(r.name)}</span><div><div class="review__name">${r.name}</div><div class="review__meta">${r.meta}</div></div></div>
         <span role="img" aria-label="${r.stars} out of 5 stars">${starRow(r.stars, 'stars--sm')}</span>
         <p class="review__text">${r.text}</p>
         ${r.photos.length ? `<div class="review__photos">${r.photos.map(p => `<button class="ugc-photo" type="button" data-action="ugc" data-i="${p}" aria-haspopup="dialog" aria-label="Photo from ${r.name}: ${UGC[p].cap}"><img src="${UGC[p].img}" alt="" loading="lazy" decoding="async"></button>`).join('')}</div>` : ''}
-        <div class="review__foot">${r.tags.map(t => `<span class="tag">${t}</span>`).join('')}
-          <button class="helpful" type="button" data-action="helpful" data-i="${i}" aria-pressed="${on}">${ic(on ? 'check' : 'thumb')}Helpful · ${r.helpful + (on ? 1 : 0)}</button></div>
       </li>`; }).join('');
     bind('reviews-more').innerHTML = !state.reviewsAll && list.length > 3 ? `<button class="btn btn--ghost" type="button" data-action="more-reviews">Show ${list.length - 3} more</button>` : '';
   }
@@ -989,6 +1071,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   // Primary action for the current selection. Same label in the bar, the card and the closing card.
   function primary() {
     const d = cur();
+    if (isToday()) return { label: 'Show ticket', action: 'sheet', kind: 'ticket' };
     if (state.booking) return { label: 'View booking', action: 'manage-booking' };
     if (state.wait && state.wait.dep === state.dep) return { label: 'Waitlist details', short: 'Details', action: 'manage-wait', ghost: true };
     if (d.status === 'waitlist') return { label: 'Join waitlist', action: 'reserve' };
@@ -996,17 +1079,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   }
 
   /* ======================= Render ======================= */
-  // Hero chip: the one live status worth seeing before scrolling
-  function renderHero() {
-    const chip = bind('status-chip'), txt = bind('status-text'), b = state.booking, w = state.wait;
-    const list = depList(), few = list.find(x => x.status === 'few');
-    if (b) { chip.dataset.tone = 'ok'; txt.textContent = `Booked · ${DEPS[b.dep].time} · ${plural(b.guests, 'guest')}`; return; }
-    if (w) { chip.dataset.tone = 'calm'; txt.textContent = `On the waitlist for ${DEPS[w.dep].time}`; return; }
-    if (few) { chip.dataset.tone = 'warn'; txt.textContent = `${few.spots} spots left at ${few.time}`; return; }
-    const open = list.filter(bookable).length;
-    chip.dataset.tone = open ? 'ok' : 'calm'; txt.textContent = open ? `${plural(open, 'departure')} with space` : 'Waitlist open';
-  }
-
+  // How the day fits: total time plus the return for the departure in play
   function renderTimesSection() {
     const el = bind('times-body'), b = state.booking;
     if (b) { const bd = DEPS[b.dep];
@@ -1014,29 +1087,32 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
       return; }
     const onWait = state.wait && state.wait.dep === state.dep;
     el.innerHTML = `${slotsHTML('page')}${onWait ? `<div style="margin-top:12px">${waitNotice()}</div>` : ''}
-      ${state.credits ? `<div class="notice" style="margin-top:16px">${ic('star')}<span><b>You have ${plural(state.credits, 'excursion credit')} of ${money(CREDIT_VALUE)}.</b> One per guest, applied when you reserve. Unused credits expire at the end of the voyage.</span></div>` : ''}`;
+      ${state.credits ? `<div class="notice" style="margin-top:16px">${ic('star')}<span><b>You have ${plural(state.credits, 'excursion credit')} of ${money(CREDIT_VALUE)}.</b> ${state.useCredits ? 'One per guest, applied when you reserve.' : 'Switched off for this booking; you can turn them back on in the review.'} Unused credits expire at the end of the voyage.</span></div>` : ''}`;
   }
 
   function renderBar() {
     const d = cur(), p = primary(), b = state.booking;
     let l1, l2;
-    if (b) { const bd = DEPS[b.dep]; l1 = `<span class="ok">You’re booked</span>`; l2 = `${VOYAGE.dateShort} · ${bd.time} · ${plural(b.guests, 'guest')}`; }
+    if (isToday()) { const bd = DEPS[b.dep]; l1 = `Meet at ${fmt(bd.min - 20)}`; l2 = `Leaves in ${leavesIn()}`; }
+    else if (b) { const bd = DEPS[b.dep]; l1 = `<span class="ok">You’re booked</span>`; l2 = `${VOYAGE.dateShort.split(',')[0]} ${bd.time} · ${plural(b.guests, 'guest')}`; }
     else if (state.wait && state.wait.dep === state.dep) { l1 = `On the waitlist`; l2 = `${d.time} · no charge yet`; }
     else { l1 = `${money(PRICE)} <span class="bar__unit">per guest</span>`; l2 = `${VOYAGE.dateShort} · ${d.time} · <span class="${d.status === 'few' ? 'few' : ''}">${d.status === 'few' ? `${d.spots} left` : d.status === 'waitlist' ? 'Waitlist' : 'Available'}</span>`; }
     bind('bar').innerHTML = `<div class="bar__summary"><span class="bar__line1">${l1}</span><span class="bar__line2">${l2}</span></div>
-      <button class="btn${p.ghost ? ' btn--ghost' : ''}" type="button" data-action="${p.action}" data-from="bar" aria-haspopup="dialog">${p.short || p.label}</button>`;
+      <button class="btn${p.ghost ? ' btn--ghost' : ''}" type="button" data-action="${p.action}"${p.kind ? ` data-kind="${p.kind}"` : ''} data-from="bar" aria-haspopup="dialog">${p.short || p.label}</button>`;
   }
 
   function renderCard() {
     const p = primary(), b = state.booking;
     let html = '';
-    if (b) {
+    if (isToday()) {
+      const bd = DEPS[b.dep];
+      html += `<div><span class="ok ok--now" style="font-weight:700;color:var(--orange-text)">Today · leaves in ${leavesIn()}</span><div class="display card__price" style="margin-top:4px">Meet at ${fmt(bd.min - 20)}</div><div class="card__date">${MEET} · ${plural(b.guests, 'guest')}</div></div>
+        <button class="btn btn--block" type="button" data-action="sheet" data-kind="ticket" aria-haspopup="dialog">Show ticket</button>`;
+    } else if (b) {
       const bd = DEPS[b.dep];
       html += `<div><span class="ok" style="font-weight:700;color:var(--success-text)">You’re booked</span><div class="display card__price" style="margin-top:4px">${bd.time} · ${plural(b.guests, 'guest')}</div><div class="card__date">${VOYAGE.dateMed} · meet ${fmt(bd.min - 20)} at ${MEET}</div></div>
         <div class="notice">${ic('card')}<span><b>${money(b.total)}</b> charged to ${VOYAGE.stateroom}${b.credit ? ` after ${money(b.credit)} in credits` : ''}.</span></div>
-        <button class="btn btn--block" type="button" data-action="manage-booking" aria-haspopup="dialog">View or cancel booking</button>
-        <button class="btn btn--ghost btn--block" type="button" data-action="calendar">${ic('cal')}Add to calendar</button>
-        <p class="fine">Free cancellation until ${deadline(bd)}</p>`;
+        <button class="btn btn--block" type="button" data-action="manage-booking" aria-haspopup="dialog">View or cancel booking</button>`;
     } else {
       const d = cur(), onWait = state.wait && state.wait.dep === state.dep;
       html += `<div><div class="display card__price">${money(PRICE)} <span class="card__unit">per guest</span></div><div class="card__date">${VOYAGE.dateMed} · 5 hours</div></div>
@@ -1050,37 +1126,102 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
   const waitNotice = () => { const w = state.wait, d = DEPS[w.dep];
     return `<div class="notice">${ic('clock')}<span><b>You’re on the waitlist for ${d.time}</b> (${plural(w.guests, 'guest')}). If a spot opens we’ll message you and hold it for ${HOLD_HOURS} hours. Nothing is charged unless you accept.</span></div>`; };
 
-  function renderTimeline() {
-    const d = state.booking ? DEPS[state.booking.dep] : cur();
-    bind('tl-head').textContent = state.booking ? `Your booked ${d.time} departure` : `Your ${d.time} departure`;
-    bind('timeline').innerHTML = TIMELINE.map(t => `<li class="tl"><span class="tl__time">${fmt(d.min + t.at)}</span><span class="tl__rail" aria-hidden="true"></span><span class="tl__what"><b>${t.what}</b><span>${t.note}</span></span></li>`).join('');
+  // Booked: boarding-pass summary in the navy band + the day with real clock times
+  const BRING = ['Warm layers and a waterproof jacket', 'Shoes with grip for gravel', 'Ship card and photo ID for each guest'];
+  const DAY = [
+    { at: -20, what: 'Meet at the pier', note: `${MEET} · 20 minutes before departure` },
+    { at: 0, what: 'Whale watching', note: 'Stephens Passage · about 2 hours with a naturalist' },
+    { at: 165, what: 'Walk to Nugget Falls', note: '1.5 mi round trip on gravel · about 1½ hours' },
+    { at: 300, what: 'Back at the pier', note: 'About 5 hours after departure' }
+  ];
+  // Day of (prototype): the clock is simulated 70 minutes before departure
+  const LEAVES_IN = 70;
+  const leavesIn = () => `${Math.floor(LEAVES_IN / 60)} hr ${LEAVES_IN % 60} min`;
+  const isToday = () => !!(state.booking && state.today);
+  const BRING_TODAY = ['Ship card and photo ID for each guest', 'Rain jacket and warm layers', 'Camera or binoculars'];
+  function renderBooked() {
+    const b = state.booking;
+    document.documentElement.dataset.mode = b ? (state.today ? 'today' : 'booked') : 'browse';
+    bind('hero-eyebrow').textContent = isToday() ? `Today · Juneau · ${VOYAGE.dateShort}` : `Day 4 · Juneau · ${VOYAGE.dateShort}`;
+    if (!b) { bind('pass').innerHTML = ''; return; }
+    const d = DEPS[b.dep];
+    const field = (label, value, wide, sub) => `<div class="pass__field${wide ? ' pass__field--wide' : ''}"><dt>${label}</dt><dd>${value}${sub ? `<small>${sub}</small>` : ''}</dd></div>`;
+    const today = isToday();
+    bind('bring-title').textContent = today ? 'Before you leave the ship' : `Pack for ${VOYAGE.dateMed.split(',')[0]}`;
+    bind('bring').innerHTML = (today ? BRING_TODAY : BRING).map(t => `<li><span class="tick">${ic('check')}</span><span>${t}</span></li>`).join('');
+    const wx = bind('weather'); wx.hidden = !today; wx.innerHTML = today ? `${ic('partly')}<span>48°F</span><span class="sr-only">, partly cloudy</span>` : '';
+    if (isToday()) {
+      bind('pass').innerHTML = `<article class="pass" aria-labelledby="pass-h">
+      <div class="pass__main">
+        <div class="pass__top"><h2 class="pass__eyebrow" id="pass-h">Your plan</h2><span class="pass__pill pass__pill--now">Leaves in ${leavesIn()}</span></div>
+        <div class="pass__lead"><p class="pass__meet">Meet at ${fmt(d.min - 20)}</p><p class="pass__where">Pier 2 · Gangway 4</p><p class="pass__hint">Exit on Deck A forward, about an 8-minute walk. Look for the Juneau Whale &amp; Glacier sign.</p></div>
+        <dl class="pass__fields">${field('Departs', d.time)}${field('Returns', '~' + fmt(d.min + 300))}${field('Guests', b.guests)}</dl>
+        <div class="pass__actions"><button class="pass__btn" type="button" data-action="sheet" data-kind="directions" aria-haspopup="dialog">${ic('pin')}Directions</button><button class="pass__btn" type="button" data-action="sheet" data-kind="message" aria-haspopup="dialog">Message desk</button></div>
+      </div>
+      </article>`;
+      bind('plan-eyebrow').textContent = 'Today';
+      bind('plan-title').textContent = 'What happens next';
+      bind('tl-note').textContent = `Today’s ${d.time} departure. Activity times are approximate.`;
+      const now = d.min - LEAVES_IN, next = DAY.findIndex(t => d.min + t.at >= now);
+      bind('timeline').innerHTML = DAY.map((t, i) => `<li class="tl${i === next ? ' is-next' : ''}"><span class="tl__time">${fmt(d.min + t.at)}</span><span class="tl__rail" aria-hidden="true"></span><span class="tl__what"><b>${t.what}</b><span>${t.note}</span></span></li>`).join('');
+      return;
+    }
+    bind('plan-eyebrow').textContent = 'Your day';
+    bind('plan-title').textContent = `${VOYAGE.dateMed.split(',')[0]}, step by step`;
+    bind('pass').innerHTML = `<article class="pass" aria-labelledby="pass-h">
+      <div class="pass__main">
+        <div class="pass__top"><h2 class="pass__eyebrow" id="pass-h">Your plan</h2><span class="pass__pill">Confirmed</span></div>
+        <div class="pass__lead"><p class="pass__meet">Meet at ${fmt(d.min - 20)}</p><p class="pass__where">Pier 2 · Gangway 4</p><p class="pass__hint">Look for the Juneau Whale &amp; Glacier sign</p></div>
+        <dl class="pass__fields">${field('Date', VOYAGE.dateShort)}${field('Departs', d.time)}${field('Guests', b.guests)}</dl>
+      </div>
+      </article>`;
+    bind('tl-note').textContent = `Times for your ${d.time} departure. Activity times are approximate.`;
+    bind('timeline').innerHTML = DAY.map(t => `<li class="tl"><span class="tl__time">${fmt(d.min + t.at)}</span><span class="tl__rail" aria-hidden="true"></span><span class="tl__what"><b>${t.what}</b><span>${t.note}</span></span></li>`).join('');
   }
 
   function renderPolicies() {
     const d = state.booking ? DEPS[state.booking.dep] : cur();
     const items = [
-      { k: 'cancel', icon: 'cal', title: 'Cancellation', sub: `Free until ${deadline(d)} (24 hours before)`, body: `<ul><li>Cancel free until 24 hours before departure. You’re refunded to your onboard account and any credits are returned.</li><li>Within 24 hours, cancellations are non-refundable.</li><li>If the operator cancels for weather, you’re refunded in full.</li></ul>` },
-      { k: 'board', icon: 'card', title: 'Boarding requirements', sub: `Meet 20 min early at ${MEET} · ship card and photo ID`, body: `<ul><li>Meet 20 minutes before departure at ${MEET}. Look for the Juneau Whale &amp; Glacier sign.</li><li>Every guest needs their ship card and a government photo ID.</li><li>Guests must be 18 or older and able to step on and off the boat unassisted.</li></ul>` },
-      { k: 'promise', icon: 'shield', title: 'Whale sighting promise', sub: 'Partial refund if no whale is seen', body: `<p>The operator guarantees a whale sighting. If none is seen, you receive a partial refund to your onboard account.</p>` }
+      { k: 'cancel', icon: 'cal', title: 'Cancellation', sub: `Free until ${deadline(d)}, 24 hours before`, body: `<p>Cancel up to 24 hours before departure for a full refund to your onboard account; any credits you used are returned. Within 24 hours, cancellations are non-refundable. If the operator cancels for weather, you’re refunded in full.</p>` },
+      { k: 'promise', icon: 'shield', title: 'Whale sighting promise', sub: 'Partial refund if no whale is seen', body: `<p>The operator guarantees a whale sighting. If none is seen, you receive a partial refund to your onboard account.</p>` },
+      { k: 'practical', icon: 'pin', title: 'Practical details', sub: 'Meeting point, what to bring, what’s included', body: `<ul><li>Meet 20 minutes before departure at ${MEET}. Look for the Juneau Whale &amp; Glacier sign.</li><li>Each guest needs a ship card and photo ID.</li><li>Bring warm layers, a waterproof jacket and shoes with grip.</li><li>Included: naturalist guide, transfers, snack and bottled water. Gratuities are optional.</li><li>Questions about mobility? Call <a class="link" href="tel:18884259376">1.888.425.9376</a> or ask the Shore Excursions desk.</li></ul>` }
     ];
+    if (state.booking) {
+      bind('policies-h').textContent = 'Good to know';
+      items.splice(0, items.length,
+        { k: 'cancel', title: 'Changes & cancellation', sub: `Free until ${deadline(d)}`, body: `<p>Cancel from <b>View booking</b> up to 24 hours before departure for a full refund to your onboard account; any credits you used are returned. Within 24 hours, cancellations are non-refundable. If the operator cancels for weather, you’re refunded in full.</p>` },
+        { k: 'late', title: 'Running late?', sub: 'Message the Shore Excursions desk', body: `<p>Message the Shore Excursions desk in the app. The boat can wait up to 10 minutes.</p>` },
+        { k: 'access', title: 'Accessibility', sub: 'Not wheelchair accessible · ramp boarding', body: `<p>Boarding is by a floating dock and ramp, and the trail is uneven gravel with a few short inclines. Questions? Call <a class="link" href="tel:18884259376">1.888.425.9376</a>.</p>` },
+        items.find(i => i.k === 'promise'));
+      if (isToday()) {
+        bind('policies-h').textContent = 'If you need anything';
+        items.splice(0, items.length,
+          { k: 'late', title: 'Running late?', sub: 'The boat can wait up to 10 minutes', body: `<p>Message the Shore Excursions desk so the crew knows you’re on your way.</p><p><button class="link" type="button" data-action="sheet" data-kind="message" aria-haspopup="dialog">Message the desk</button></p>` },
+          { k: 'cantmake', title: 'Can’t make it?', sub: 'Within 24 hours, cancellations are non-refundable', body: `<p>Let the desk know so your spots can be offered to guests on the waitlist. If the operator cancels for weather, you’re refunded in full.</p>` },
+          { k: 'promise', title: 'Whale sighting promise', sub: 'Partial refund if no whale is seen', body: `<p>The operator guarantees a whale sighting. If none is seen, you receive a partial refund to your onboard account.</p>` });
+      }
+    } else bind('policies-h').textContent = 'Before you book';
     const was = $$('[data-bind="policies"] .reveal.is-open').map(r => r.id);
     bind('policies').innerHTML = items.map(it => { const id = `acc-${it.k}`, open = was.includes(id);
       return `<div class="acc"><button class="acc__head" type="button" data-action="reveal" data-target="${id}" aria-expanded="${open}" aria-controls="${id}">
-          ${ic(it.icon)}<span class="acc__titles"><span class="acc__title">${it.title}</span><span class="acc__sub">${it.sub}</span></span>${ic('down', 'icon chev')}</button>
+          <span class="acc__titles"><span class="acc__title">${it.title}</span><span class="acc__sub">${it.sub}</span></span>${ic('down', 'icon chev')}</button>
         <div class="reveal${open ? ' is-open' : ''}" id="${id}"><div><div class="acc__body">${it.body}</div></div></div></div>`; }).join('');
   }
 
   function renderClosing() {
-    const p = primary(), b = state.booking;
-    const copy = b ? ['Next stop: the humpbacks.', `Booked for ${VOYAGE.dateMed} at ${DEPS[b.dep].time}. Meet at ${MEET} by ${fmt(DEPS[b.dep].min - 20)}.`]
-      : ['Whales, ice and a waterfall. Back on board by dinner.', 'Some days in port stay with you forever. Make Juneau one of them.'];
-    bind('closing').innerHTML = `<h2 class="closing__title">${copy[0]}</h2><p class="closing__sub">${copy[1]}</p><span class="closing__cta" aria-hidden="true">${p.label}</span>
-      <button class="closing__hit" type="button" data-action="${p.action}" data-from="closing" aria-haspopup="dialog" aria-label="${p.label}"></button>`;
+    const p = primary(), b = state.booking, d = cur();
+    const open = depList().filter(x => x.status !== 'soldout').length;
+    const [title, sub] = b
+      ? isToday() ? ['Have a wonderful day in Juneau.', `Your ticket is ready. Show it at Gangway 4 by ${fmt(DEPS[b.dep].min - 20)}.`] : ['Next stop: the humpbacks.', `Confirmed for ${VOYAGE.dateMed} at ${DEPS[b.dep].time}. Meet at Gangway 4 by ${fmt(DEPS[b.dep].min - 20)}.`]
+      : ['Spend Saturday in Juneau with the humpbacks.', `${open ? `${plural(open, 'departure')}` : 'Waitlist only'} on December 12, each ${money(PRICE)} per guest.`];
+    const label = b || p.ghost ? p.label : d.status === 'waitlist' ? `Join waitlist for ${d.time}` : `Reserve ${d.time}`;
+    bind('closing').innerHTML = `<p class="closing__eyebrow">Day 4 · Juneau</p><h2 class="closing__title" id="closing-h">${title}</h2><p class="closing__sub">${sub}</p>
+      ${b ? `<button class="closing__hit" type="button" data-action="${p.action}"${p.kind ? ` data-kind="${p.kind}"` : ''} aria-haspopup="dialog" aria-label="${p.label}"></button><span class="btn closing__desk-btn" aria-hidden="true">${p.label}</span>` : `<button class="btn" type="button" data-action="${p.action}" data-from="closing" aria-haspopup="dialog">${p.ghost ? label : `<span class="closing__cta--mob">Select times</span><span class="closing__cta--desk">${d.status === 'waitlist' ? 'Join waitlist' : 'Reserve'}</span>`}</button>`}`;
   }
 
   function render() {
     normalizeDep();
-    renderHero(); renderTimesSection(); renderBar(); renderCard(); renderTimeline(); renderPolicies(); renderClosing();
+    renderBooked(); renderTimesSection(); renderBar(); renderCard(); renderPolicies(); renderClosing();
     bind('compact-ctx').textContent = `${VOYAGE.dateShort} · ${VOYAGE.day}`;
     if (state.sheet === 'select') fillSheet('select');
     $$('[data-action="proto-first"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === state.first)));
@@ -1100,6 +1241,52 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     const title = bind('sheet-title'), body = bind('sheet-body'), foot = bind('sheet-foot');
     const d = cur(), t = totals(), wait = d.status === 'waitlist';
     foot.hidden = true; foot.innerHTML = '';
+    if (kind === 'ticket') {
+      const b = state.booking, bd = DEPS[b.dep];
+      title.textContent = 'Your ticket';
+      body.innerHTML = `<div class="ticket"><div class="ticket__code">${qr()}</div><p class="muted">Show this at Gangway 4. Sample code — not a real ticket.</p>
+        <div class="confirm__card"><b>Whales &amp; Mendenhall Glacier Trail · ${bd.time}</b><span>Meet ${fmt(bd.min - 20)} · ${MEET}</span><span>${plural(b.guests, 'guest')} · ${VOYAGE.stateroom}</span></div></div>`;
+      foot.hidden = false; foot.innerHTML = `<button class="btn btn--block" type="button" data-action="close-sheet">Done</button>`;
+    }
+    if (kind === 'directions') {
+      const bd = DEPS[state.booking.dep];
+      title.textContent = 'Directions';
+      body.innerHTML = `<div class="info"><p class="info__lead">Pier 2 · Gangway 4 by ${fmt(bd.min - 20)}</p>
+        <ol class="steps-plain"><li><span>Exit the ship on Deck A, forward.</span></li><li><span>Walk about 8 minutes to Pier 2, Gangway 4.</span></li><li><span>Look for the Juneau Whale &amp; Glacier sign, with ship cards and photo ID ready.</span></li></ol></div>`;
+    }
+    if (kind === 'message') {
+      title.textContent = 'Shore Excursions desk';
+      body.innerHTML = `<div class="info"><p class="muted">Send a quick message. The desk replies in the app.</p>
+        <div class="quick">${['We’re running a few minutes late', 'We can’t make it today', 'I have a question about today'].map(m => `<button type="button" data-action="send-msg" data-msg="${m}">${m}</button>`).join('')}</div>
+        <p class="muted" style="font-size:.875rem">If you’re running late, the boat can wait up to 10 minutes.</p></div>`;
+    }
+    if (kind === 'duration') {
+      const dd = state.booking ? DEPS[state.booking.dep] : d;
+      title.textContent = 'Duration';
+      body.innerHTML = `<div class="info"><p class="info__lead">5 hours pier to pier</p>
+        <div class="info__rows">
+          <div class="info__row"><b>Whale watching</b><span>About 2 hours</span><small>Stephens Passage, with a naturalist on board</small></div>
+          <div class="info__row"><b>Walk to Nugget Falls</b><span>About 1½ hours</span><small>Gravel trail beside Mendenhall Glacier</small></div>
+          <div class="info__row"><b>Transfers</b><span>Included</span><small>Between the pier, the boat and the glacier</small></div>
+        </div>
+        <p class="muted">${state.booking ? 'On your' : 'On the'} ${dd.time} departure you’re back around ${fmt(dd.min + 300)}.</p></div>`;
+    }
+    if (kind === 'activity') {
+      title.textContent = 'Activity level';
+      body.innerHTML = `<div class="info"><p class="info__lead">Moderate: about 1.5 miles round trip on uneven gravel</p>
+        <ul><li>A few short inclines on the trail</li><li>Stepping on and off a boat from a floating dock</li><li>Seating inside and on deck; it’s often cold on deck and the water can be choppy</li></ul>
+        <div class="levels">
+          <div class="level"><b>Easy</b><span>Minimal walking on flat, paved surfaces</span></div>
+          <div class="level is-this"><b>Moderate</b><span>Up to 1.5 miles on uneven gravel, a few short inclines</span></div>
+          <div class="level"><b>Strenuous</b><span>Extended hiking, paddling or climbing</span></div>
+        </div></div>`;
+    }
+    if (kind === 'access') {
+      title.textContent = 'Accessibility';
+      body.innerHTML = `<div class="info"><p class="info__lead">Not wheelchair accessible</p>
+        <ul><li>Boarding is by a floating dock and ramp</li><li>The trail to Nugget Falls is uneven gravel with a few short inclines</li><li>All guests must be 18 or older</li></ul>
+        <p class="muted">Questions about mobility? Call <a class="link" href="tel:18884259376">1.888.425.9376</a> or ask the Shore Excursions desk on board.</p></div>`;
+    }
     if (kind === 'select') {
       title.textContent = 'Choose time and guests';
       const onWait = state.wait && state.wait.dep === state.dep;
@@ -1121,12 +1308,12 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
           ${state.credits ? `<div class="rv__row${t.used ? ' rv__row--credit' : ''}"><span>Credits</span><span class="rv__credit"><span><b>${t.used ? money(-t.credit) : '$0'}</b><small>${creditSmall}</small></span><button class="switch" type="button" role="switch" aria-checked="${state.useCredits}" aria-label="Use excursion credits" data-action="credits" data-ctx="sheet"></button></span></div>` : ''}
           <div class="rv__row rv__row--total"><span>${wait ? 'If you accept a spot' : 'Total'}</span><span><b>${money(t.total)}</b><small>${wait ? `Charged to ${VOYAGE.stateroom} only if you accept` : `Charged to your onboard account, ${VOYAGE.stateroom}, when you reserve`}</small></span></div>
         </div>
-        ${wait ? waitSteps(d, t) : `<div class="notice policy-box">${ic('cal')}<span><b>Free cancellation until ${deadline(d)}.</b> That’s 24 hours before departure; you’re refunded and credits are returned. After that it’s non-refundable.</span></div>`}
+        ${wait ? waitSteps(d, t) : ''}
         ${replaces}
         <button class="link" type="button" data-action="select" style="margin-top:14px;padding:8px 0">Change time or guests</button>`;
       foot.hidden = false;
       foot.innerHTML = `<button class="btn btn--block" type="button" data-action="confirm">${wait ? 'Join waitlist · no charge now' : t.total ? `Reserve and charge ${money(t.total)}` : 'Reserve · covered by credits'}</button>
-        <p class="fine">${wait ? 'Nothing is charged unless you accept a spot.' : `<b>Free cancellation until ${deadline(d)}</b>.`} Prototype: nothing is booked or charged.</p>`;
+        <p class="fine">${wait ? 'Nothing is charged unless you accept a spot.' : `<b>Free cancellation until ${deadline(d)}</b>, 24 hours before departure. After that, non-refundable.`}<br>Prototype: nothing is booked or charged.</p>`;
     }
     if (kind === 'done') {
       const b = state.booking, bd = DEPS[b.dep];
@@ -1170,6 +1357,9 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
       foot.innerHTML = `<button class="btn btn--block btn--solid-danger" type="button" data-action="cancel-booking">Yes, cancel booking</button><button class="btn btn--ghost btn--block" type="button" data-action="manage-booking">Keep booking</button>`;
     }
   }
+  // Placeholder ticket code: a fixed pseudo-random grid with three finder squares
+  function qr() { let s = '', r = 7; for (let y = 0; y < 21; y++) for (let x = 0; x < 21; x++) { r = (r * 9301 + 49297) % 233280; const fx = x < 7 ? x : x > 13 ? x - 14 : -1, fy = y < 7 ? y : y > 13 ? y - 14 : -1; const finder = fx >= 0 && fy >= 0 && !(x > 13 && y > 13); const on = finder ? (fx === 0 || fx === 6 || fy === 0 || fy === 6 || (fx > 1 && fx < 5 && fy > 1 && fy < 5)) : r / 233280 > 0.55; if (on) s += `<rect x="${x}" y="${y}" width="1" height="1"/>`; } return `<svg viewBox="0 0 21 21" fill="#022658" role="img" aria-label="Sample ticket code">${s}</svg>`; }
+
   function lockPage(on) {
     document.documentElement.classList.toggle('is-locked', on);
     ['#page', '.booking-bar', '#compact'].forEach(s => { const el = $(s); if (el) el.inert = on; });
@@ -1216,14 +1406,16 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 
   /* ======================= Sticky jump nav ======================= */
   const jump = $('#jump'), track = $('#jump-track'), compact = $('#compact'), compactBack = $('.compact-header__back', compact);
-  const PILLS = [['day', 'Your day'], ['expect', 'What to expect'], ['times', 'Price & times'], ['reviews', 'Reviews'], ['policies', 'Good to know']];
+  const PILLS = () => [['plan', isToday() ? 'Today' : 'Your day'], ['bring', 'Bring'], ['why', 'Why go'], ['times', 'Price & times'], ['reviews', 'Reviews'], ['policies', isToday() ? 'Help' : state.booking ? 'Good to know' : 'Before you book']];
   const visibleSections = () => $$('[data-section]').filter(s => s.offsetParent !== null);
-  let spyLock = 0, activeId = 'day';
+  let spyLock = 0, activeId = 'why';
   function buildPills() {
     const ids = visibleSections().map(s => s.id);
-    const want = PILLS.filter(([id]) => ids.includes(id));
-    if (track.dataset.ids === want.map(p => p[0]).join()) return;
-    track.dataset.ids = want.map(p => p[0]).join();
+    const want = PILLS().filter(([id]) => ids.includes(id));
+    const key = want.map(p => p.join(':')).join();
+    if (track.dataset.ids === key) return;
+    track.dataset.ids = key;
+    if (!want.some(([id]) => id === activeId) && want[0]) activeId = want[0][0];
     track.innerHTML = want.map(([id, label]) => `<a class="jump__pill" href="#${id}" data-action="goto" data-target="${id}" aria-current="${id === activeId}">${label}</a>`).join('');
     updateFade();
   }
@@ -1286,7 +1478,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
     const a = el.dataset.action;
     if (el.tagName === 'A') e.preventDefault();
     switch (a) {
-      case 'goto': goTo(el.dataset.target, el.closest('.hero__facts')); break;
+      case 'goto': goTo(el.dataset.target, el.closest('.facts-row')); break;
       case 'goto-times': if (deskMQ.matches) { const s = $('.slot[tabindex="0"]', bind('card')); s && s.focus(); } else goTo('times', true); break;
       case 'reveal': toggleReveal(el); break;
       case 'reserve': startReserve(el.dataset.from, el); break;
@@ -1322,13 +1514,15 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
       case 'manage-wait': state.sheet ? swapSheet('wait') : openSheet('wait', el); break;
       case 'leave-wait': state.wait = null; closeSheet(); render(); toast('You left the waitlist'); break;
       case 'cancel-ask': swapSheet('cancel'); break;
-      case 'cancel-booking': { const b = state.booking; state.credits += b.used; state.dep = b.dep; state.booking = null; closeSheet(); render(); toast(`Booking cancelled · ${money(b.total)} refunded to your onboard account`); break; }
+      case 'cancel-booking': { const b = state.booking; state.today = false; state.credits += b.used; state.dep = b.dep; state.booking = null; closeSheet(); render(); toast(`Booking cancelled · ${money(b.total)} refunded to your onboard account`); break; }
       case 'calendar': downloadICS(); break;
-      case 'close-sheet': closeSheet(); break;
-      case 'back': if (history.length > 1 && document.referrer.startsWith(location.origin)) history.back(); else toast('In the app, this returns to Day 4 · Juneau'); break;
+      case 'close-sheet': { const wasDone = state.sheet === 'done'; closeSheet(); if (wasDone) setTimeout(() => window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' })); break; } // after the page unlocks
+      case 'sheet': state.sheet ? swapSheet(el.dataset.kind) : openSheet(el.dataset.kind, el); break;
+      case 'send-msg': closeSheet(); toast('Message sent to the Shore Excursions desk (prototype)'); break;
       case 'gal-go': showSlide(+el.dataset.i); schedule(); break;
       case 'slideshow': setPaused(!userPaused); break;
-      case 'lightbox': openLightbox(+el.dataset.i || 0, el, el.dataset.set || 'moments'); break;
+      case 'back': if (history.length > 1 && document.referrer.startsWith(location.origin)) history.back(); else toast('In the app, this returns to Day 4 · Juneau'); break;
+      case 'lightbox': openLightbox(+el.dataset.i || 0, el, el.dataset.set || 'why'); break;
       case 'ugc': openLightbox(+el.dataset.i, el, 'ugc'); break;
       case 'close-lightbox': closeLightbox(); break;
       case 'lb-prev': lbTo(lbIndex - 1); break;
@@ -1339,7 +1533,9 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
       case 'proto-toggle': { const p = $('#proto-panel'); p.hidden = !p.hidden; el.setAttribute('aria-expanded', String(!p.hidden)); break; }
       case 'proto-first': state.first = el.dataset.v; render(); break;
       case 'proto-credits': if (!state.booking) { state.credits = +el.dataset.v; render(); } else toast('Cancel the booking first'); break;
-      case 'proto-reset': state.booking = null; state.wait = null; state.notify = {}; state.credits = 2; state.useCredits = true; state.dep = defaultDep(); state.guests = 2; render(); toast('Prototype reset'); break;
+      case 'proto-today': state.today = true; if (!state.booking) { normalizeDep(); if (!bookable(cur())) state.dep = depList().findIndex(bookable); const t = totals(); state.booking = { dep: state.dep, guests: state.guests, ...t }; state.credits -= t.used; state.wait = null; } render(); window.scrollTo({ top: 0 }); break;
+      case 'proto-booked': state.today = false; if (!state.booking) { normalizeDep(); if (!bookable(cur())) state.dep = depList().findIndex(bookable); const t = totals(); state.booking = { dep: state.dep, guests: state.guests, ...t }; state.credits -= t.used; state.wait = null; } render(); window.scrollTo({ top: 0 }); break;
+      case 'proto-reset': state.today = false; state.booking = null; state.wait = null; state.notify = {}; state.credits = 2; state.useCredits = true; state.dep = defaultDep(); state.guests = 2; render(); toast('Prototype reset'); break;
     }
   });
 
@@ -1377,6 +1573,7 @@ p { margin: 0; } h1, h2, h3 { margin: 0; font-weight: inherit; } ul, ol, dl, dd 
 
   /* ======================= Boot ======================= */
   state.dep = defaultDep();
+  if (q.get('booked') === '1' || state.today) { const t = totals(); state.booking = { dep: state.dep, guests: state.guests, ...t }; state.credits -= t.used; }
   render();
   onScroll();
 })();
