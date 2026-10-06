@@ -1,0 +1,9 @@
+{
+  "name": "Shore Excursion",
+  "short_name": "Shore Ex",
+  "start_url": "ShoreEx-5.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#021E46",
+  "theme_color": "#4B7D9C"
+}
