@@ -1,0 +1,9 @@
+{
+  "name": "Pinnacle Grill",
+  "short_name": "Pinnacle",
+  "start_url": "Dining.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#021E46",
+  "theme_color": "#403739"
+}
