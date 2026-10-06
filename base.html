@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Opened from the Home Screen it runs as a web app with a translucent status bar. The blue header pads
+     itself by the top safe area, so the status bar sits on HAL blue as in the Figma frame; in a Safari tab
+     the bar is tinted the same blue. -->
+<meta name="theme-color" content="#022658">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shore Base">
+<link rel="manifest" href="base.webmanifest">
+<title>Shore Excursion · Base</title>
+<!--
+  Shore Excursion detail — Base
+  Template: Figma "base" · Excursion DP (node 1:633, default available state).
+  Content: ShoreEx.html, mapped into the template's fields only. Anything without a field was dropped
+  (hero gallery, timeline, departures, reviews, guest-state prototype controls).
+
+  Breakpoints: < 640 phone (Figma 375 frame) · ≥ 640 tablet (centered 640 column)
+               · ≥ 1024 desktop (main column + sticky reserve card replaces the bottom bar)
+-->
+<style>
+:root {
+  --hal-blue: #022658; --hal-blue-hover: #1C4379;
+  --neutral-10: #E6E7E9; --neutral-20: #CDCFD2; --neutral-80: #353F4C; --neutral-90: #1D2736;
+  --credit-bg: #E8EFF7; --star: #FF7F32; --white: #FFFFFF;
+  --font-headline: "HAL Headline", "HAL Headline Display", Georgia, "Times New Roman", serif;
+  --font-body: "HAL Body", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-button: "Quasimoda", "HAL Body", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --shadow-bar: 0 -1px 4px rgba(51,51,51,0.08), 0 3px 4px rgba(51,51,51,0.08);
+  --pad: 20px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--white); color: var(--neutral-90); font-family: var(--font-body); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+p, h1, h2, ul, ol { margin: 0; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--hal-blue); outline-offset: 2px; }
+svg { display: block; flex: none; }
+
+/* Type — Figma text styles */
+.b2 { font-size: 16px; line-height: 1.6; letter-spacing: 0.01em; }
+.b3 { font-size: 14px; line-height: 1.6; letter-spacing: 0.01em; }
+.b4 { font-size: 12px; line-height: 1.6; letter-spacing: 0.01em; }
+.semi { font-weight: 600; }
+.bold { font-weight: 700; }
+.blue { color: var(--hal-blue); }
+.n80 { color: var(--neutral-80); }
+.h4 { font-size: 20px; font-weight: 600; line-height: 1.2; letter-spacing: 0.01em; color: var(--hal-blue); }
+.h1 { font-family: var(--font-headline); font-weight: 400; font-size: 28px; line-height: 1.2; letter-spacing: -0.01em; color: var(--hal-blue); }
+[id] { scroll-margin-top: calc(60px + env(safe-area-inset-top)); }
+.link { font-weight: 600; color: var(--hal-blue); text-decoration: underline; text-underline-offset: 2px; }
+
+/* Mobile header */
+.header { position: sticky; top: 0; z-index: 20; background: var(--hal-blue); padding: env(safe-area-inset-top) 8px 0; }
+.header__inner { display: flex; align-items: center; height: 44px; max-width: 1200px; margin: 0 auto; }
+.header__back { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; }
+.header__back:focus-visible { outline-color: var(--white); }
+
+/* Hero — one static image */
+.hero { margin: 0; aspect-ratio: 4 / 3; background: #D9D9D9; overflow: hidden; }
+.hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Layout */
+.page { padding: 20px var(--pad) calc(74px + 24px + env(safe-area-inset-bottom)); }
+.main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.rule { border: 0; border-top: 1px solid var(--neutral-10); margin: 0; width: 100%; }
+
+/* Summary */
+.summary { display: flex; flex-direction: column; gap: 8px; }
+.summary__when { display: flex; align-items: center; gap: 8px; }
+.summary__price { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.summary__price > div { display: flex; align-items: flex-end; gap: 4px; }
+
+/* Top 3 reasons */
+.reasons { list-style: none; padding: 8px; border: 1px solid var(--neutral-20); border-radius: 8px; display: flex; flex-direction: column; gap: 14px; }
+.reasons li { display: flex; gap: 8px; align-items: flex-start; }
+.reasons__num { padding: 4px 2px; }
+.reasons__num span { width: 20px; height: 20px; border: 1px solid var(--hal-blue); border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; line-height: 1; color: var(--hal-blue); }
+
+/* Details */
+.details { display: flex; flex-direction: column; gap: 12px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile { display: flex; gap: 8px; align-items: flex-start; padding: 8px; border: 1px solid var(--neutral-10); border-radius: 8px; background: var(--white); min-width: 0; }
+.tile__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tile__value { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.info-btn { width: 24px; height: 24px; margin: -4px -4px -4px 0; display: grid; place-items: center; border-radius: 50%; }
+
+/* Pricing */
+.price-rows { display: flex; flex-direction: column; gap: 12px; }
+.price-row { display: flex; justify-content: space-between; }
+
+/* Credit (expandable) */
+.credit { background: var(--credit-bg); border: 1px solid var(--neutral-20); border-radius: 8px; padding: 12px 0; color: var(--hal-blue); }
+.credit__head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; }
+.credit__head > span { display: flex; align-items: center; gap: 8px; flex: 1; }
+.credit__chev { transition: transform 200ms ease; transform: scaleY(-1); }
+.credit[data-open="false"] .credit__chev { transform: none; }
+.credit__body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 200ms ease; }
+.credit[data-open="false"] .credit__body { grid-template-rows: 0fr; }
+.credit__body > div { overflow: hidden; }
+.credit__inner { margin-top: 8px; border-top: 1px solid var(--neutral-20); padding: 8px 12px 0; display: flex; flex-direction: column; gap: 4px; }
+.credit__inner ul { padding-left: 18px; color: var(--neutral-90); }
+
+/* Good to know list */
+.list { border: 1px solid var(--neutral-20); border-radius: 8px; overflow: hidden; }
+.list__row { width: 100%; height: 60px; display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--white); }
+.list__row + .list__row { border-top: 1px solid var(--neutral-20); }
+.list__row:focus-visible { outline-offset: -2px; }
+.list__text { flex: 1; min-width: 0; }
+.list__text p:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chev-right { transform: rotate(-90deg); }
+
+/* Bottom bar (mobile/tablet) */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--white); box-shadow: var(--shadow-bar); padding: 10px 24px calc(24px + env(safe-area-inset-bottom)); }
+.btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 40px; min-width: 135px; padding: 12px 36px; border-radius: 360px; background: var(--hal-blue); color: var(--white); font-family: var(--font-button); font-weight: 600; font-size: 16px; line-height: 16px; text-align: center; transition: background 160ms ease; }
+.btn:hover { background: var(--hal-blue-hover); }
+.bar .btn { max-width: 480px; margin: 0 auto; }
+
+/* Desktop reserve card */
+.aside { display: none; }
+
+/* Sheet */
+.sheet { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; visibility: hidden; }
+.sheet[data-open="true"] { visibility: visible; }
+.sheet__scrim { position: absolute; inset: 0; background: rgba(3,15,31,0.48); opacity: 0; transition: opacity 200ms ease; }
+.sheet[data-open="true"] .sheet__scrim { opacity: 1; }
+.sheet__panel { position: relative; width: 100%; max-width: 560px; max-height: 85vh; overflow: auto; background: var(--white); border-radius: 16px 16px 0 0; padding: 8px var(--pad) calc(24px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform 240ms cubic-bezier(0.4,0,0.2,1); }
+.sheet[data-open="true"] .sheet__panel { transform: none; }
+.sheet__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 16px; position: sticky; top: -8px; background: var(--white); }
+.sheet__close { width: 44px; height: 44px; margin-right: -10px; display: grid; place-items: center; border-radius: 50%; }
+.sheet__body { display: flex; flex-direction: column; gap: 12px; }
+.sheet__body ul { padding-left: 18px; }
+.lvl { padding: 12px; border: 1px solid var(--neutral-10); border-radius: 8px; }
+.lvl--current { border-color: var(--hal-blue); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Tablet */
+@media (min-width: 640px) {
+  :root { --pad: 32px; }
+  .hero { aspect-ratio: 16 / 9; max-height: 480px; width: 100%; }
+  .page { max-width: 640px; margin: 0 auto; padding-top: 28px; }
+  .h1 { font-size: 32px; }
+}
+@media (min-width: 768px) {
+  .tiles { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .hero { aspect-ratio: auto; height: 440px; max-height: none; }
+  .page { max-width: 1200px; padding: 40px 40px 80px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 64px; align-items: start; }
+  .main { max-width: 720px; }
+  .h1 { font-size: 36px; }
+  .bar { display: none; }
+  .aside { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 76px; padding: 20px; border: 1px solid var(--neutral-20); border-radius: 8px; box-shadow: var(--shadow-bar); }
+  .aside__price { display: flex; align-items: flex-end; gap: 4px; }
+  .sheet { align-items: center; }
+  .sheet__panel { border-radius: 16px; transform: translateY(16px); opacity: 0; transition: transform 200ms ease, opacity 200ms ease; padding-bottom: 24px; }
+  .sheet[data-open="true"] .sheet__panel { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="12 12 20 20"><path d="M25.3333 30.3333L17 22L25.3333 13.6667L26.8125 15.1458L19.9583 22L26.8125 28.8542L25.3333 30.3333Z" fill="#fff"/></symbol>
+  <symbol id="i-schedule" viewBox="0 0 24 24"><path d="M15.3 16.7L16.7 15.3L13 11.6V7H11V12.4L15.3 16.7ZM12 22C10.6 22 9.3 21.74 8.1 21.21C6.88 20.69 5.82 19.98 4.92 19.08C4.02 18.18 3.31 17.12 2.79 15.9C2.26 14.68 2 13.38 2 12C2 10.62 2.26 9.32 2.79 8.1C3.31 6.88 4.02 5.82 4.92 4.92C5.82 4.02 6.88 3.31 8.1 2.79C9.32 2.26 10.62 2 12 2C13.38 2 14.68 2.26 15.9 2.79C17.12 3.31 18.18 4.02 19.08 4.92C19.98 5.82 20.69 6.88 21.21 8.1C21.74 9.32 22 10.62 22 12C22 13.38 21.74 14.68 21.21 15.9C20.69 17.12 19.98 18.18 19.08 19.08C18.18 19.98 17.12 20.69 15.9 21.21C14.68 21.74 13.38 22 12 22ZM12 20C14.22 20 16.1 19.22 17.66 17.66C19.22 16.1 20 14.22 20 12C20 9.78 19.22 7.9 17.66 6.34C16.1 4.78 14.22 4 12 4C9.78 4 7.9 4.78 6.34 6.34C4.78 7.9 4 9.78 4 12C4 14.22 4.78 16.1 6.34 17.66C7.9 19.22 9.78 20 12 20Z" fill="#022658"/></symbol>
+  <symbol id="i-run" viewBox="0 0 24 24"><path d="M13 23V17L10.9 15L9.9 19.4L3 18L3.4 16L8.2 17L9.8 8.9L8 9.6V13H6V8.3L9.95 6.6C10.53 6.35 10.96 6.19 11.24 6.11C11.51 6.04 11.77 6 12 6C12.35 6 12.68 6.09 12.98 6.28C13.28 6.46 13.52 6.7 13.7 7L14.7 8.6C15.13 9.3 15.72 9.88 16.46 10.33C17.2 10.78 18.05 11 19 11V13C17.9 13 16.87 12.77 15.91 12.31C14.95 11.85 14.15 11.25 13.5 10.5L12.9 13.5L15 15.5V23H13ZM12.09 4.91C11.7 4.52 11.5 4.05 11.5 3.5C11.5 2.95 11.7 2.48 12.09 2.09C12.48 1.7 12.95 1.5 13.5 1.5C14.05 1.5 14.52 1.7 14.91 2.09C15.3 2.48 15.5 2.95 15.5 3.5C15.5 4.05 15.3 4.52 14.91 4.91C14.52 5.3 14.05 5.5 13.5 5.5C12.95 5.5 12.48 5.3 12.09 4.91Z" fill="#022658"/></symbol>
+  <symbol id="i-dining" viewBox="0 0 24 24"><path d="M4.375 21L2.975 19.6L13.225 9.35C12.925 8.65 12.883 7.858 13.1 6.975C13.317 6.092 13.792 5.3 14.525 4.6C15.408 3.717 16.392 3.2 17.475 3.05C18.558 2.9 19.442 3.167 20.125 3.85C20.808 4.533 21.075 5.417 20.925 6.5C20.775 7.583 20.258 8.567 19.375 9.45C18.675 10.183 17.883 10.658 17 10.875C16.117 11.092 15.325 11.05 14.625 10.75L13.375 12L20.975 19.6L19.575 21L11.975 13.45L4.375 21ZM7.325 12.45L4.325 9.45C3.425 8.55 2.975 7.475 2.975 6.225C2.975 4.975 3.425 3.9 4.325 3L10.525 9.25L7.325 12.45Z" fill="#022658"/></symbol>
+  <symbol id="i-dictionary" viewBox="0 0 24 24"><path d="M4 14.225H5.125L5.7 12.575H8.3L8.9 14.225H10L7.575 7.775H6.425L4 14.225ZM6.025 11.65L6.975 8.975H7.025L7.975 11.65H6.025ZM14 9.9V8.2C14.55 7.967 15.113 7.792 15.688 7.675C16.263 7.558 16.867 7.5 17.5 7.5C17.933 7.5 18.358 7.533 18.775 7.6C19.192 7.667 19.6 7.75 20 7.85V9.45C19.6 9.3 19.196 9.188 18.788 9.113C18.379 9.038 17.95 9 17.5 9C16.867 9 16.258 9.079 15.675 9.238C15.092 9.396 14.533 9.617 14 9.9ZM14 15.4V13.7C14.55 13.467 15.113 13.292 15.688 13.175C16.263 13.058 16.867 13 17.5 13C17.933 13 18.358 13.033 18.775 13.1C19.192 13.167 19.6 13.25 20 13.35V14.95C19.6 14.8 19.196 14.688 18.788 14.613C18.379 14.538 17.95 14.5 17.5 14.5C16.867 14.5 16.258 14.575 15.675 14.725C15.092 14.875 14.533 15.1 14 15.4ZM14 12.65V10.95C14.55 10.717 15.113 10.542 15.688 10.425C16.263 10.308 16.867 10.25 17.5 10.25C17.933 10.25 18.358 10.283 18.775 10.35C19.192 10.417 19.6 10.5 20 10.6V12.2C19.6 12.05 19.196 11.938 18.788 11.863C18.379 11.788 17.95 11.75 17.5 11.75C16.867 11.75 16.258 11.829 15.675 11.988C15.092 12.146 14.533 12.367 14 12.65ZM6.5 16C7.283 16 8.046 16.088 8.788 16.263C9.529 16.438 10.267 16.7 11 17.05V7.2C10.317 6.8 9.592 6.5 8.825 6.3C8.058 6.1 7.283 6 6.5 6C5.9 6 5.304 6.058 4.713 6.175C4.121 6.292 3.55 6.467 3 6.7V16.6C3.583 16.4 4.163 16.25 4.738 16.15C5.313 16.05 5.9 16 6.5 16ZM13 17.05C13.733 16.7 14.471 16.438 15.213 16.263C15.954 16.088 16.717 16 17.5 16C18.1 16 18.688 16.05 19.263 16.15C19.838 16.25 20.417 16.4 21 16.6V6.7C20.45 6.467 19.879 6.292 19.288 6.175C18.696 6.058 18.1 6 17.5 6C16.717 6 15.942 6.1 15.175 6.3C14.408 6.5 13.683 6.8 13 7.2V17.05ZM12 20C11.2 19.367 10.333 18.875 9.4 18.525C8.467 18.175 7.5 18 6.5 18C5.8 18 5.113 18.092 4.438 18.275C3.763 18.458 3.117 18.717 2.5 19.05C2.15 19.233 1.813 19.225 1.488 19.025C1.163 18.825 1 18.533 1 18.15V6.1C1 5.917 1.046 5.742 1.138 5.575C1.229 5.408 1.367 5.283 1.55 5.2C2.317 4.8 3.117 4.5 3.95 4.3C4.783 4.1 5.633 4 6.5 4C7.467 4 8.413 4.125 9.338 4.375C10.263 4.625 11.15 5 12 5.5C12.85 5 13.738 4.625 14.663 4.375C15.588 4.125 16.533 4 17.5 4C18.367 4 19.217 4.1 20.05 4.3C20.883 4.5 21.683 4.8 22.45 5.2C22.633 5.283 22.771 5.408 22.863 5.575C22.954 5.742 23 5.917 23 6.1V18.15C23 18.533 22.838 18.825 22.513 19.025C22.188 19.225 21.85 19.233 21.5 19.05C20.883 18.717 20.238 18.458 19.563 18.275C18.888 18.092 18.2 18 17.5 18C16.5 18 15.533 18.175 14.6 18.525C13.667 18.875 12.8 19.367 12 20Z" fill="#022658"/></symbol>
+  <symbol id="i-info" viewBox="0 0 16 16"><path d="M3.05 3.05C.32 5.78.32 10.22 3.05 12.95C5.78 15.68 10.22 15.68 12.95 12.95C15.68 10.22 15.68 5.78 12.95 3.05C10.22.32 5.78.32 3.05 3.05ZM8.28 3.94C8.87 3.94 9.34 4.42 9.34 5.02C9.34 5.61 8.86 6.09 8.28 6.09C7.69 6.09 7.2 5.61 7.2 5C7.2 4.41 7.69 3.94 8.28 3.94ZM9.8 11.16C9.77 11.25 9.71 11.35 9.65 11.41C9.27 11.81 8.8 12.05 8.24 12.05C7.97 12.05 7.72 12.05 7.45 12C7.02 11.94 6.48 11.41 6.55 10.85C6.61 10.47 6.67 10.08 6.73 9.7C6.85 9.03 6.97 8.35 7.08 7.69C7.08 7.64 7.1 7.6 7.1 7.56C7.1 7.28 7.01 7.17 6.73 7.14C6.61 7.13 6.49 7.11 6.37 7.08C6.24 7.04 6.17 6.92 6.18 6.82C6.2 6.7 6.27 6.63 6.42 6.6C6.49 6.58 6.58 6.58 6.67 6.58H8.71C8.96 6.58 9.11 6.7 9.11 6.95C9.11 7.16 9.08 7.36 9.03 7.57C8.9 8.34 8.75 9.09 8.62 9.86C8.58 10.11 8.52 10.36 8.49 10.61C8.47 10.73 8.49 10.87 8.52 10.98C8.56 11.15 8.68 11.23 8.84 11.22C8.97 11.21 9.11 11.16 9.24 11.1C9.34 11.06 9.43 10.98 9.54 10.95C9.71 10.9 9.85 11 9.8 11.16Z" fill="#022658"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M5.825 21L7.45 13.975L2 9.25L9.2 8.625L12 2L14.8 8.625L22 9.25L16.55 13.975L18.175 21L12 17.275L5.825 21Z" fill="#FF7F32"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M11.625 14.9125C11.5083 14.8708 11.4 14.8 11.3 14.7L6.7 10.1C6.51667 9.91667 6.425 9.68333 6.425 9.4C6.425 9.11667 6.51667 8.88333 6.7 8.7C6.88333 8.51667 7.11667 8.425 7.4 8.425C7.68333 8.425 7.91667 8.51667 8.1 8.7L12 12.6L15.9 8.7C16.0833 8.51667 16.3167 8.425 16.6 8.425C16.8833 8.425 17.1167 8.51667 17.3 8.7C17.4833 8.88333 17.575 9.11667 17.575 9.4C17.575 9.68333 17.4833 9.91667 17.3 10.1L12.7 14.7C12.6 14.8 12.4917 14.8708 12.375 14.9125C12.2583 14.9542 12.1333 14.975 12 14.975C11.8667 14.975 11.7417 14.9542 11.625 14.9125Z" fill="#022658"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.4 19L5 17.6L10.6 12L5 6.4L6.4 5L12 10.6L17.6 5L19 6.4L13.4 12L19 17.6L17.6 19L12 13.4L6.4 19Z" fill="#022658"/></symbol>
+</svg>
+
+<header class="header">
+  <div class="header__inner">
+    <button class="header__back" type="button" aria-label="Back to Day 4 · Juneau" onclick="history.back()"><svg width="20" height="20"><use href="#i-back"/></svg></button>
+  </div>
+</header>
+
+<figure class="hero">
+  <img src="assets/hero-3-westerdam-glacier-bay.jpg" alt="A Holland America ship cruising past a tidewater glacier in Alaska">
+</figure>
+
+<div class="page">
+  <main class="main">
+
+    <section class="summary" aria-labelledby="title">
+      <div>
+        <p class="b3 semi">Juneau, Alaska, US</p>
+        <h1 class="h1" id="title">Alaska’s Whales &amp; Mendenhall Glacier Trail</h1>
+      </div>
+      <div class="summary__when">
+        <span class="b3 semi">Dec 12, 2026</span>
+        <span class="b4" aria-hidden="true">·</span>
+        <span class="b3 semi">7:45 AM</span>
+      </div>
+      <div class="summary__price">
+        <div class="n80"><span class="b2 semi">$259</span><span class="b3">per guest</span></div>
+        <a class="b3 link" href="#pricing">View all pricing</a>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <h2 class="h4">Top 3 reasons to book</h2>
+    <ol class="reasons">
+      <li><span class="reasons__num"><span>1</span></span><span class="b2 blue">Watch humpbacks feed, close up</span></li>
+      <li><span class="reasons__num"><span>2</span></span><span class="b2 blue">Walk to the foot of a waterfall</span></li>
+      <li><span class="reasons__num"><span>3</span></span><span class="b2 blue">Only 20 guests on board</span></li>
+    </ol>
+
+    <hr class="rule">
+
+    <h2 class="h4">Details</h2>
+    <div class="details">
+      <div class="tiles">
+        <div class="tile"><svg width="24" height="24" aria-hidden="true"><use href="#i-schedule"/></svg><div class="tile__text b3"><span>Duration</span><span class="semi blue">5 hours</span></div></div>
+        <div class="tile"><svg width="24" height="24" aria-hidden="true"><use href="#i-run"/></svg><div class="tile__text b3"><span>Activity Level</span><span class="tile__value"><span class="semi blue">Moderate</span><button class="info-btn" type="button" data-sheet="activity" aria-label="About activity levels"><svg width="16" height="16" aria-hidden="true"><use href="#i-info"/></svg></button></span></div></div>
+        <div class="tile"><svg width="24" height="24" aria-hidden="true"><use href="#i-dining"/></svg><div class="tile__text b3"><span>Snack</span><span class="semi blue">Included</span></div></div>
+        <div class="tile"><svg width="24" height="24" aria-hidden="true"><use href="#i-dictionary"/></svg><div class="tile__text b3"><span>Language</span><span class="semi blue">English</span></div></div>
+      </div>
+      <p class="b3 bold">Ages 18 and over.</p>
+      <p class="b3"><b>Not wheelchair accessible.</b> Please consult with the shore excursions team onboard the ship or phone the Call Center at <a href="tel:18884259376">1.888.425.9376</a>.</p>
+    </div>
+
+    <hr class="rule">
+
+    <h2 class="h4" id="pricing">Pricing</h2>
+    <div class="price-rows">
+      <div class="price-row b3"><span>Per guest</span><span class="semi blue">$259</span></div>
+    </div>
+    <div class="credit" data-open="true">
+      <button class="credit__head" type="button" aria-expanded="true" aria-controls="credit-body">
+        <span><svg width="24" height="24" aria-hidden="true"><use href="#i-star"/></svg><span class="b3">You have <span class="link">2 × $100 excursion credits</span> available</span></span>
+        <svg class="credit__chev" width="24" height="24" aria-hidden="true"><use href="#i-chev"/></svg>
+      </button>
+      <div class="credit__body" id="credit-body"><div>
+        <div class="credit__inner b4">
+          <p class="semi">Using your excursion credit</p>
+          <ul>
+            <li>Applied automatically when you reserve, up to $100 per guest.</li>
+            <li>Unused credits expire at the end of the voyage.</li>
+          </ul>
+        </div>
+      </div></div>
+    </div>
+
+    <hr class="rule">
+
+    <h2 class="h4">Good to Know</h2>
+    <div class="list">
+      <button class="list__row" type="button" data-sheet="about">
+        <span class="list__text b3"><p class="semi blue">About this excursion</p><p>A small boat, a naturalist and the humpbacks of Stephens Passage. Then a gravel trail to the foot of Mendenhall Glacier.</p></span>
+        <svg class="chev-right" width="24" height="24" aria-hidden="true"><use href="#i-chev"/></svg>
+      </button>
+      <button class="list__row" type="button" data-sheet="notes">
+        <span class="list__text b3"><p class="semi blue">Notes</p><p class="n80">The operator guarantees a whale sighting. If none is seen, you receive a partial refund to your onboard account.</p></span>
+        <svg class="chev-right" width="24" height="24" aria-hidden="true"><use href="#i-chev"/></svg>
+      </button>
+      <button class="list__row" type="button" data-sheet="cancel">
+        <span class="list__text b3"><p class="semi blue">Cancellation</p><p class="n80">Cancel up to 24 hours before departure at no charge.</p></span>
+        <svg class="chev-right" width="24" height="24" aria-hidden="true"><use href="#i-chev"/></svg>
+      </button>
+    </div>
+  </main>
+
+  <aside class="aside" aria-label="Reserve">
+    <div class="aside__price n80"><span class="b2 semi">$259</span><span class="b3">per guest</span></div>
+    <div class="summary__when"><span class="b3 semi">Dec 12, 2026</span><span class="b4" aria-hidden="true">·</span><span class="b3 semi">7:45 AM</span></div>
+    <button class="btn" type="button">Reserve</button>
+  </aside>
+</div>
+
+<div class="bar"><button class="btn" type="button">Reserve</button></div>
+
+<div class="sheet" id="sheet" data-open="false" aria-hidden="true">
+  <div class="sheet__scrim" data-close></div>
+  <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet__head">
+      <h2 class="h4" id="sheet-title"></h2>
+      <button class="sheet__close" type="button" data-close aria-label="Close"><svg width="24" height="24" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sheet__body b3" id="sheet-body"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const SHEETS = {
+    about: ['About this excursion', `
+      <p class="b2">A small boat, a naturalist and the humpbacks of Stephens Passage. Then a gravel trail to the foot of Mendenhall Glacier.</p>
+      <p>Your guide reads the water for blows and bubble nets, and the boat slows to let the whales set the pace. Orcas, sea lions and bald eagles often join the scene.</p>
+      <p>Ashore, about 1.5 miles of uneven gravel trail, with a few short inclines, leads to Nugget Falls. You'll be close enough to feel the cold air coming off the ice.</p>`],
+    notes: ['Notes', `
+      <p>The operator guarantees a whale sighting. If none is seen, you receive a partial refund to your onboard account.</p>`],
+    cancel: ['Cancellation', `
+      <p>Cancel up to 24 hours before departure at no charge.</p>
+      <ul><li>Within 24 hours, cancellations are non-refundable.</li><li>If the operator cancels, you're refunded in full.</li></ul>`],
+    activity: ['Activity level', `
+      <p class="n80">Activity levels describe the physical effort involved so you can choose the right excursion.</p>
+      <div class="lvl"><p class="semi blue">Easy</p><p>Minimal walking on flat, paved surfaces. Mostly seated or standing.</p></div>
+      <div class="lvl lvl--current"><p class="semi blue">Moderate · This excursion</p><p>Walking up to 1.5 miles on uneven gravel trails, with a few short inclines and stairs.</p></div>
+      <div class="lvl"><p class="semi blue">Strenuous</p><p>Extended hiking, paddling, or climbing. Good physical fitness required.</p></div>`]
+  };
+
+  const sheet = document.getElementById('sheet');
+  let opener = null;
+  const open = (key, btn) => {
+    const [title, body] = SHEETS[key];
+    document.getElementById('sheet-title').textContent = title;
+    document.getElementById('sheet-body').innerHTML = body;
+    opener = btn;
+    sheet.dataset.open = 'true';
+    sheet.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    sheet.querySelector('.sheet__close').focus();
+  };
+  const close = () => {
+    sheet.dataset.open = 'false';
+    sheet.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    opener && opener.focus();
+  };
+
+  document.addEventListener('click', e => {
+    const s = e.target.closest('[data-sheet]');
+    if (s) return open(s.dataset.sheet, s);
+    if (e.target.closest('[data-close]')) return close();
+    const head = e.target.closest('.credit__head');
+    if (head) {
+      const c = head.closest('.credit'), next = c.dataset.open !== 'true';
+      c.dataset.open = String(next);
+      head.setAttribute('aria-expanded', String(next));
+    }
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && sheet.dataset.open === 'true') close(); });
+})();
+</script>
+</body>
+</html>

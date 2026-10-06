@@ -1,0 +1,9 @@
+{
+  "name": "Shore Excursion · Base",
+  "short_name": "Shore Base",
+  "start_url": "base.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#021E46",
+  "theme_color": "#022658"
+}
